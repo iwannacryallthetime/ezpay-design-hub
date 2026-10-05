@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ezPay · AI Checker (Checking Officer view)</title>
+<!--
+  Source: Figma "AI-Checker", frame "CO" (node 103:25013)
+  https://www.figma.com/design/L0DJ6cw857R3z29OoUpsQg/AI-Checker?node-id=103-25013
+  Prototype only: all data is mock data, nothing is sent anywhere.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Brand (from the ezPay shell) */
+    --brand: #26a69a;
+    --brand-dark: #00897b;
+    --action: #0b8e76;
+    --danger: #d7260f;
+
+    /* Teal (AI checker accents) */
+    --teal-900: #042f2e; --teal-800: #115e59; --teal-700: #0f766e; --teal-600: #0d9488;
+    --teal-500: #14b8a6; --teal-300: #5eead4; --teal-200: #99f6e4; --teal-100: #ccfbf1; --teal-50: #f0fdfa;
+
+    /* Slate (text, borders, surfaces) */
+    --slate-900: #0f172a; --slate-800: #1e293b; --slate-700: #334155; --slate-600: #475569;
+    --slate-500: #64748b; --slate-400: #94a3b8; --slate-300: #cbd5e1; --slate-200: #e2e8f0;
+    --slate-100: #f1f5f9; --slate-50: #f8fafc;
+
+    /* Status */
+    --amber-900: #78350f; --amber-800: #92400e; --amber-700: #b45309; --amber-500: #f59e0b;
+    --amber-300: #fcd34d; --amber-200: #fde68a; --amber-100: #fef3c7; --amber-50: #fffbeb;
+    --red-800: #991b1b; --red-700: #b91c1c; --red-600: #dc2626; --red-200: #fecaca;
+    --red-100: #fee2e2; --red-50: #fef2f2;
+    --green-800: #065f46; --green-500: #10b981; --green-400: #34d399; --green-100: #d1fae5; --green-50: #ecfdf5;
+    --purple-800: #6b21a8; --purple-100: #f3e8ff;
+
+    /* Sidebar (d-Side menu component) */
+    --nav-border: #cdd5de; --nav-text: #0e1114; --nav-section: #8fa0af; --nav-active-bg: #e0f0ef;
+
+    --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --radius-sm: 4px; --radius: 8px;
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.05);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font-family: var(--font); color: var(--slate-800); background: #fff; font-size: 12px; line-height: 16px; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  :focus-visible { outline: 2px solid var(--teal-500); outline-offset: 2px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+  /* ---------- App shell ---------- */
+  .app { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; transition: grid-template-columns .2s ease; }
+  .app[data-sidebar="collapsed"] { grid-template-columns: 64px 1fr; }
+
+  .sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; background: #fff; border-right: 1px solid var(--nav-border); box-shadow: 6px 0 16px rgba(2,17,37,.04); overflow: hidden; z-index: 5; }
+  .brand { background: var(--brand); height: 64px; display: flex; align-items: center; justify-content: center; gap: 6px; flex: none; }
+  .brand-word { color: #fff; font-weight: 700; font-size: 30px; line-height: 20px; }
+  .brand-chip { background: #f5f5f5; color: var(--brand); font-size: 20px; line-height: 20px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 6px; }
+  .role-switch { margin: 11px; background: #eef1f4; border-radius: 4px; padding: 5px 9px; display: flex; align-items: center; gap: 22px; flex: none; }
+  .role { border: 0; background: transparent; font-size: 24px; line-height: 20px; font-weight: 500; color: rgba(97,108,118,.49); padding: 7px 9px; border-radius: 4px; }
+  .role[aria-pressed="true"] { background: var(--brand); color: #fff; font-weight: 700; box-shadow: 0 4px 2px rgba(0,0,0,.1); }
+
+  .nav { flex: 1; overflow-y: auto; padding-top: 12px; border-top: 1px solid var(--nav-border); }
+  .nav-section { color: var(--nav-section); font-size: 12px; font-weight: 500; line-height: 20px; padding: 1px 16px; }
+  .nav-link { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 16px; border: 0; background: transparent; text-align: left; font-size: 14px; line-height: 20px; color: var(--nav-text); text-decoration: none; }
+  .nav-link svg.i { width: 20px; height: 20px; stroke-width: 1.6; }
+  .nav-link:hover { background: var(--slate-50); }
+  .nav-link[aria-current="page"] { background: var(--nav-active-bg); color: var(--brand); font-weight: 700; }
+  .nav-link[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--brand); border-radius: 0 4px 4px 0; }
+  .nav-sub { padding-left: 40px; }
+  .nav-caret { margin-left: auto; transition: transform .15s; }
+  .nav-link[aria-expanded="false"] .nav-caret { transform: rotate(180deg); }
+  .nav-divider { height: 1px; background: var(--nav-border); margin: 10px 0 10px 3px; }
+  .nav-me { display: flex; gap: 8px; align-items: center; padding: 10px 16px; }
+  .nav-me b { display: block; font-weight: 500; font-size: 14px; line-height: 14px; margin-bottom: 4px; color: #09090b; }
+  .nav-me span { color: #71717a; font-size: 14px; line-height: 14px; }
+  .collapse-btn { flex: none; display: flex; align-items: center; justify-content: space-between; border: 0; border-top: 1px solid var(--nav-border); background: #fff; padding: 6px 10px 6px 15px; font-size: 12px; line-height: 20px; color: #000; }
+  .collapse-btn svg.i { width: 20px; height: 20px; transition: transform .2s; }
+  .app[data-sidebar="collapsed"] .label,
+  .app[data-sidebar="collapsed"] .nav-section,
+  .app[data-sidebar="collapsed"] .nav-sub,
+  .app[data-sidebar="collapsed"] .nav-caret,
+  .app[data-sidebar="collapsed"] .role-switch,
+  .app[data-sidebar="collapsed"] .brand-chip,
+  .app[data-sidebar="collapsed"] .nav-me div { display: none; }
+  .app[data-sidebar="collapsed"] .brand-word { font-size: 18px; }
+  .app[data-sidebar="collapsed"] .collapse-btn { justify-content: center; }
+  .app[data-sidebar="collapsed"] .collapse-btn svg.i { transform: rotate(180deg); }
+
+  /* ---------- Main ---------- */
+  .main { min-width: 0; display: flex; flex-direction: column; }
+  .page-head { padding: 17px 20px 7px; }
+  .page-head h1 { margin: 0; font-size: 30px; line-height: 36px; font-weight: 400; color: #000; }
+  .tabs { display: flex; gap: 24px; padding: 0 16px; border-bottom: 1px solid var(--nav-border); margin: 0 20px 0 20px; }
+  .tab { border: 0; background: transparent; height: 40px; font-size: 14px; line-height: 20px; color: var(--nav-text); padding: 0; position: relative; }
+  .tab[aria-selected="true"] { color: var(--brand-dark); }
+  .tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--brand-dark); }
+
+  .content { flex: 1; padding: 20px 24px 24px 24px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 512px); gap: 24px; align-items: start; }
+  .col-left { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .placeholder-panel { padding: 48px 44px; color: var(--slate-500); font-size: 14px; line-height: 22px; max-width: 60ch; }
+  .placeholder-panel h2 { color: var(--slate-800); font-size: 16px; margin: 0 0 8px; }
+
+  /* ---------- Section cards ---------- */
+  .card { background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); box-shadow: var(--shadow-xs); overflow: hidden; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 11px; background: rgba(248,250,252,.8); border-bottom: 1px solid var(--slate-200); }
+  .sec-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; line-height: 16px; font-weight: 700; color: var(--slate-700); letter-spacing: .6px; text-transform: uppercase; }
+  .sec-num { background: var(--teal-100); color: var(--teal-700); font-weight: 700; font-size: 12px; padding: 2px 6px; border-radius: 4px; letter-spacing: 0; }
+  .card-meta { color: var(--slate-400); font-weight: 500; }
+  .link-btn { border: 0; background: none; padding: 0; color: var(--teal-600); font-weight: 500; display: inline-flex; align-items: center; gap: 4px; font-size: 11px; }
+  .link-btn:hover { text-decoration: underline; }
+  .fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 16px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.rule { border-top: 1px solid var(--slate-100); padding-top: 13px; }
+  .field.span-4 { grid-column: 1 / -1; }
+  .f-label { color: var(--slate-400); font-size: 11px; font-weight: 600; letter-spacing: .55px; text-transform: uppercase; }
+  .f-value { color: var(--slate-800); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .f-value svg.i { width: 14px; height: 14px; color: var(--slate-400); }
+
+  .items-head { display: flex; align-items: center; justify-content: space-between; padding-top: 4px; }
+  .items-head .sec-title { font-size: 14px; line-height: 20px; color: var(--slate-800); letter-spacing: .35px; }
+  .total-pill { background: rgba(15,118,110,.1); border: 1px solid rgba(13,148,136,.2); color: var(--teal-700); font-weight: 700; padding: 5px 11px; border-radius: 4px; }
+  .items { display: flex; flex-direction: column; gap: 20px; }
+
+  /* Collapsed line item */
+  .item-summary { width: 100%; text-align: left; display: grid; grid-template-columns: repeat(12, minmax(0,1fr)); gap: 12px; align-items: center; padding: 17px; background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); box-shadow: 0 1px 1px rgba(0,0,0,.05); opacity: .75; transition: opacity .15s, border-color .15s; }
+  .item-summary:hover { opacity: 1; border-color: var(--teal-300); }
+  .item-summary .num { grid-column: 1; text-align: center; font-weight: 700; color: var(--slate-400); }
+  .item-summary .what { grid-column: 2 / span 5; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .item-summary .coding { grid-column: 7 / span 4; color: var(--slate-500); font-size: 11px; line-height: 15px; }
+  .item-summary .amounts { grid-column: 11 / span 2; text-align: right; color: var(--slate-400); font-size: 11px; }
+  .item-summary .amounts b { display: block; color: var(--slate-800); font-size: 14px; line-height: 20px; }
+  .chip { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 4px; background: var(--slate-100); color: var(--slate-600); }
+  .item-title { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--slate-800); }
+  .ai-dot { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--green-800); }
+  .ai-dot.warn { color: var(--amber-800); }
+  .ai-dot svg.i { width: 12px; height: 12px; }
+
+  /* Expanded line item */
+  .item-open { border: 2px solid var(--teal-300); border-radius: var(--radius); overflow: hidden; background: #fff; }
+  .item-strip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px 11px; background: rgba(240,253,250,.9); border-bottom: 1px solid var(--teal-200); flex-wrap: wrap; }
+  .strip-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .strip-num { background: var(--teal-700); color: #fff; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+  .strip-title { font-size: 14px; line-height: 20px; font-weight: 700; color: var(--slate-800); }
+  .tag-teal { background: var(--teal-100); color: var(--teal-700); font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; }
+  .tag-review { background: var(--amber-100); border: 1px solid var(--amber-300); color: var(--amber-800); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 4px; }
+  .tag-ready { background: var(--green-100); border: 1px solid var(--green-400); color: var(--green-800); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 4px; }
+  .rerun { border: 0; background: none; color: var(--teal-600); display: inline-flex; align-items: center; gap: 6px; padding: 0; }
+  .rerun svg.i { width: 14px; height: 14px; }
+  .rerun[aria-busy="true"] svg.i { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .item-close { border: 0; background: none; color: var(--slate-500); padding: 4px; border-radius: 4px; display: inline-flex; }
+  .item-close:hover { background: var(--teal-100); }
+  .strip-right { display: flex; align-items: center; gap: 12px; }
+
+  .side-by-side { display: grid; grid-template-columns: 5fr 7fr; }
+  .claim-side { background: rgba(248,250,252,.4); padding: 16px; display: flex; flex-direction: column; gap: 16px; border-right: 1px solid var(--slate-100); }
+  .box { background: #fff; border: 1px solid var(--slate-200); border-radius: 4px; }
+  .amount-box { padding: 13px; display: flex; flex-direction: column; gap: 8px; }
+  .amount-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .amount-row span { color: var(--slate-500); font-weight: 500; }
+  .amount-row b { font-size: 16px; line-height: 24px; color: var(--slate-900); }
+  .amount-split { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; border-top: 1px solid var(--slate-100); padding-top: 5px; font-size: 11px; line-height: 16.5px; }
+  .amount-split span { display: block; color: var(--slate-400); }
+  .amount-split b { color: var(--slate-700); font-weight: 600; }
+  .amount-split b.changed { color: var(--teal-700); }
+  .desc-box { padding: 9px; font-weight: 500; line-height: 19.5px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .coding-box { padding: 11px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; }
+  .coding-box div { display: flex; justify-content: space-between; gap: 12px; }
+  .coding-box span { color: var(--slate-400); }
+  .comments { border-top: 1px solid var(--slate-200); padding-top: 13px; display: flex; align-items: center; gap: 8px; }
+  .comments label { color: var(--slate-400); font-size: 11px; font-weight: 700; letter-spacing: .55px; text-transform: uppercase; }
+  .comments input { flex: 1; min-width: 0; border: 1px solid var(--slate-300); border-radius: 4px; padding: 7px 13px; font: inherit; color: var(--slate-800); }
+  .btn-teal { border: 0; background: var(--teal-700); color: #fff; font-weight: 500; border-radius: 4px; padding: 7px 12px; display: inline-flex; align-items: center; gap: 4px; }
+  .btn-teal:hover { background: var(--teal-800); }
+  .btn-teal.sm { font-size: 11px; padding: 2px 10px; }
+  .btn-teal svg.i { width: 14px; height: 14px; }
+  .saved-note { font-size: 11px; color: var(--slate-500); background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 4px; padding: 8px 10px; }
+  .saved-note b { color: var(--slate-700); }
+
+  /* AI side */
+  .ai-side { padding: 16px 17px; min-width: 0; }
+  .ai-head { background: var(--teal-700); color: #fff; padding: 12px; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 8px; }
+  .ai-head .ico { background: var(--teal-800); padding: 6px; border-radius: 4px; display: inline-flex; }
+  .ai-head h3 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; }
+  .live { background: var(--green-400); color: var(--teal-900); font-size: 9px; line-height: 13.5px; font-weight: 800; padding: 0 6px; border-radius: 4px; }
+  .ai-banner { display: flex; align-items: center; justify-content: space-between; padding: 10px 11px 11px; border: 1px solid; border-top: 0; font-weight: 700; }
+  .ai-banner.warn { background: var(--amber-50); border-color: var(--amber-200); color: var(--amber-900); }
+  .ai-banner.ok { background: var(--green-50); border-color: var(--green-100); color: var(--green-800); }
+  .ai-banner .msg { display: flex; align-items: center; gap: 8px; }
+  .ai-banner .pill { font-size: 10px; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+  .ai-banner.warn .pill { background: rgba(253,230,138,.7); }
+  .ai-banner.ok .pill { background: var(--green-100); }
+  .ai-banner.warn svg.i { color: var(--amber-500); fill: var(--amber-500); stroke: #fff; }
+  .panels { display: flex; flex-direction: column; gap: 16px; padding-top: 12px; }
+  .panel { border: 1px solid var(--slate-200); border-radius: 8px; padding: 13px; }
+  .panel.a { background: rgba(248,250,252,.5); }
+  .panel.b { background: #fff; }
+  .panel-toggle { width: 100%; border: 0; background: none; padding: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .panel-title { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--slate-800); letter-spacing: .3px; text-transform: uppercase; text-align: left; }
+  .panel-title svg.i { color: var(--teal-600); }
+  .panel-right { display: flex; align-items: center; gap: 8px; color: var(--slate-500); }
+  .panel-toggle svg.chev { transition: transform .15s; }
+  .panel-toggle[aria-expanded="false"] svg.chev { transform: rotate(180deg); }
+  .count-fail { background: var(--red-100); color: var(--red-800); font-size: 10px; line-height: 15px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+  .count-ok { background: var(--green-100); color: var(--green-800); font-size: 10px; line-height: 15px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+  .panel-body { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .panel-body[hidden] { display: none; }
+
+  .cmp-row { display: grid; grid-template-columns: 5fr 6fr 1fr; gap: 8px; align-items: center; padding: 9px; background: #fff; border: 1px solid var(--slate-200); border-radius: 4px; }
+  .cmp-row .lbl { color: var(--slate-600); font-weight: 500; }
+  .cmp-row .val { text-align: right; }
+  .cmp-row .ok { justify-self: end; color: var(--green-500); }
+  .cmp-row .ok svg.i { width: 12px; height: 12px; stroke-width: 3; }
+  .cmp-flag { background: var(--amber-50); border: 1px solid var(--amber-300); border-radius: 4px; padding: 11px; display: flex; flex-direction: column; gap: 6px; }
+  .cmp-flag .top, .cmp-flag .bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .cmp-flag .name { font-weight: 700; color: var(--amber-900); }
+  .cmp-flag .meta { font-size: 10px; font-weight: 600; color: var(--amber-800); }
+  .cmp-flag .meta.chip-amber { background: var(--amber-100); padding: 2px 6px; border-radius: 4px; }
+  .cmp-flag .vals { font-size: 11px; color: var(--slate-700); }
+  .cmp-flag .vals code { font-family: var(--mono); font-weight: 700; color: var(--slate-900); }
+  .cmp-flag .vals code.ai { color: var(--amber-700); }
+  .cmp-resolved { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px; background: var(--green-50); border: 1px solid var(--green-100); border-radius: 4px; color: var(--green-800); }
+  .cmp-resolved .lbl { font-weight: 600; }
+  .undo { border: 0; background: none; color: var(--teal-600); font-size: 11px; padding: 0; }
+  .undo:hover { text-decoration: underline; }
+
+  .filters { display: flex; gap: 4px; padding-bottom: 9px; border-bottom: 1px solid var(--slate-200); flex-wrap: wrap; }
+  .filter { border: 0; background: transparent; color: var(--slate-500); font-size: 11px; line-height: 16.5px; padding: 2px 8px; border-radius: 4px; }
+  .filter[aria-pressed="true"] { background: var(--slate-100); color: var(--slate-700); font-weight: 600; }
+  .filter.fail[aria-pressed="true"] { background: var(--red-100); color: var(--red-800); }
+  .filter.pass[aria-pressed="true"] { background: var(--green-100); color: var(--green-800); }
+
+  .check { border: 1px solid var(--slate-200); border-radius: 8px; }
+  .check.fail { background: rgba(254,242,242,.4); border-color: var(--red-200); }
+  .check.resolved { background: var(--green-50); border-color: var(--green-100); }
+  .check-row { width: 100%; border: 0; background: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 13px; text-align: left; }
+  .check-row:disabled { cursor: default; }
+  .check-main { display: flex; gap: 8px; align-items: flex-start; }
+  .check-main .st { margin-top: 1px; display: inline-flex; }
+  .check-name { font-weight: 500; color: var(--slate-800); }
+  .check.open .check-name { font-weight: 700; color: var(--slate-900); line-height: 16.5px; }
+  .check-sub { display: block; margin-top: 2px; font-size: 11px; line-height: 16.5px; color: var(--slate-600); font-weight: 400; }
+  .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+  .badge.fail { background: var(--red-100); color: var(--red-800); }
+  .badge.pass { background: var(--green-100); color: var(--green-800); }
+  .badge.na { background: var(--slate-100); color: var(--slate-500); }
+  .badge.ai { background: var(--purple-100); color: var(--purple-800); padding: 2px 6px; }
+  .badge.resolved { background: var(--green-100); color: var(--green-800); }
+  .check-detail { padding: 0 13px 13px; display: flex; flex-direction: column; gap: 8px; }
+  .discrepancy { background: #fff; border: 1px solid var(--red-100); border-radius: 4px; padding: 11px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; line-height: 16.5px; }
+  .discrepancy > div:first-child { border-right: 1px solid var(--slate-100); padding-right: 9px; color: var(--slate-700); }
+  .discrepancy > div:last-child { padding-left: 4px; color: var(--red-700); }
+  .discrepancy h4 { margin: 0; font-size: 10px; line-height: 15px; letter-spacing: .5px; text-transform: uppercase; color: var(--slate-400); }
+  .discrepancy > div:last-child h4 { color: var(--red-600); }
+  .low-conf { background: rgba(255,251,235,.7); border: 1px solid var(--amber-200); border-radius: 4px; padding: 9px; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 11px; line-height: 16.5px; color: var(--amber-800); }
+  .low-conf b:first-child { color: var(--amber-900); }
+  .check-actions { display: flex; align-items: center; justify-content: space-between; padding-top: 4px; }
+  .check-actions .link-btn { font-size: 12px; font-weight: 600; }
+  .check-actions .link-btn svg.i { width: 14px; height: 14px; }
+  .empty-filter { color: var(--slate-500); font-size: 12px; padding: 8px 2px; }
+
+  /* Attachments */
+  .attachments { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 8px; scroll-margin-top: 16px; }
+  .att-box { padding: 13px; display: flex; flex-direction: column; gap: 8px; }
+  .att-box h3 { margin: 0; padding-bottom: 9px; border-bottom: 1px solid var(--slate-100); display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--slate-800); letter-spacing: .3px; text-transform: uppercase; }
+  .att-box h3 svg.i { color: var(--teal-600); }
+  .file { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px; background: rgba(248,250,252,.5); border: 1px solid var(--slate-200); border-radius: 4px; text-align: left; }
+  .file:hover { border-color: var(--teal-300); }
+  .file[aria-pressed="true"] { background: rgba(240,253,250,.5); border: 2px solid var(--teal-500); padding: 8px; }
+  .file[aria-pressed="true"] .file-end { color: var(--teal-700); }
+  .file-start { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .pdf { background: var(--red-100); color: var(--red-700); font-size: 9px; line-height: 13.5px; font-weight: 700; padding: 0 4px; border-radius: 4px; flex: none; }
+  .file-name { font-weight: 600; color: var(--slate-800); display: block; }
+  .file-sub { font-size: 10px; line-height: 15px; color: var(--slate-400); display: block; }
+  .file-end { color: var(--slate-400); display: inline-flex; }
+
+  /* ---------- Document viewer (right) ---------- */
+  .viewer { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+  .total-banner { background: var(--brand); border-radius: 6px; padding: 8px 16px; display: flex; align-items: center; gap: 16px; color: #fff; box-shadow: 0 1px 1px rgba(0,0,0,.05); }
+  .total-banner .big { border-right: 1px solid rgba(15,118,110,.8); padding-right: 17px; }
+  .total-banner .big span { display: block; color: var(--teal-200); font-size: 10px; line-height: 15px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+  .total-banner .big b { font-size: 20px; line-height: 28px; letter-spacing: -.5px; }
+  .total-banner .split { font-size: 11px; line-height: 17.88px; color: rgba(204,251,241,.9); }
+  .total-banner .split code { font-family: var(--mono); font-weight: 700; color: #fff; }
+  .doc { border-radius: 4px; overflow: hidden; border: 1px solid var(--slate-200); }
+  .doc-tab { background: var(--slate-100); border-bottom: 1px solid var(--slate-200); padding: 8px 12px 9px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .doc-tab .name { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 700; color: var(--slate-700); }
+  .doc-tab .name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .doc-tab .pdf { background: var(--red-600); color: #fff; line-height: 16px; }
+  .icon-btn { border: 0; background: none; padding: 4px; color: var(--slate-500); border-radius: 4px; display: inline-flex; }
+  .icon-btn:hover { background: rgba(0,0,0,.06); }
+  .icon-btn svg.i { width: 14px; height: 14px; }
+  .doc-toolbar { background: #2b3648; color: var(--slate-300); padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
+  .doc-toolbar .pages { display: flex; align-items: center; gap: 8px; }
+  .doc-toolbar .pages b { color: #fff; font-weight: 400; font-size: 12px; }
+  .doc-toolbar .zoom { display: flex; align-items: center; gap: 8px; }
+  .doc-toolbar .zoom button { border: 0; background: none; color: var(--slate-300); font-weight: 700; font-size: 14px; line-height: 14px; padding: 0 4px; }
+  .doc-toolbar .icon-btn { color: var(--slate-300); padding: 0 0 0 8px; }
+  .doc-toolbar .icon-btn:hover { background: none; color: #fff; }
+  .doc-canvas { background: #525659; height: min(852px, calc(100vh - 220px)); min-height: 420px; overflow: auto; padding: 16px; }
+  .sheet { background: #fff; border: 1px solid var(--slate-300); box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 8px 10px -6px rgba(0,0,0,.1); width: 478px; min-height: 620px; padding: 25px; display: flex; flex-direction: column; gap: 16px; font-size: 9px; line-height: 11.25px; color: var(--slate-700); transform-origin: top left; margin: 0 auto; }
+  .sheet-wrap { margin: 0 auto; }
+  .inv-head { display: flex; justify-content: space-between; border-bottom: 1px solid var(--slate-200); padding-bottom: 17px; }
+  .inv-brand { font-size: 18px; line-height: 28px; font-weight: 900; letter-spacing: -.9px; color: var(--slate-900); }
+  .inv-brand em { font-style: normal; color: var(--amber-700); }
+  .inv-brand sub { font-size: 12px; color: var(--amber-700); vertical-align: -3px; }
+  .inv-sub { color: var(--slate-500); font-weight: 600; letter-spacing: .9px; text-transform: uppercase; }
+  .stars { color: var(--amber-500); padding-top: 1.5px; }
+  .muted { color: var(--slate-500); }
+  .inv-right { text-align: right; display: flex; flex-direction: column; gap: 1px; color: var(--slate-600); }
+  .inv-right .ttl { font-size: 20px; line-height: 28px; font-weight: 900; color: var(--amber-700); letter-spacing: .5px; margin-bottom: 2px; }
+  .inv-right code { font-family: var(--mono); font-weight: 700; color: var(--slate-800); }
+  .guest { background: var(--slate-50); border: 1px solid var(--slate-100); border-radius: 4px; padding: 9px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .guest h5 { margin: 0 0 2px; font-size: 9px; color: var(--slate-500); letter-spacing: .45px; text-transform: uppercase; }
+  .guest p { margin: 0 0 2px; }
+  .inv-table { width: 100%; border-collapse: collapse; color: var(--slate-800); }
+  .inv-table th { font-weight: 700; color: var(--slate-900); text-align: left; padding: 4px 1px; border-bottom: 2px solid var(--slate-800); }
+  .inv-table td { padding: 6px 1px; vertical-align: middle; }
+  .inv-table tr + tr td { border-top: 1px solid var(--slate-200); }
+  .inv-table .r { text-align: right; } .inv-table .c { text-align: center; }
+  .inv-table small { display: block; font-size: 8px; line-height: 10px; color: var(--slate-400); }
+  .inv-totals { border-top: 2px solid var(--slate-800); padding-top: 6px; display: flex; flex-direction: column; gap: 2px; }
+  .inv-totals div { display: flex; justify-content: space-between; }
+  .inv-totals .grand { border-top: 1px solid var(--slate-200); padding-top: 5px; font-size: 11px; line-height: 13.75px; font-weight: 700; color: var(--slate-900); }
+  .inv-totals .grand b { color: var(--amber-800); }
+  .paid { background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 4px; padding: 9px; display: flex; justify-content: space-between; align-items: center; color: var(--slate-600); }
+  .paid p { margin: 0 0 2px; }
+  .paid-stamp { background: var(--green-100); border: 1px solid var(--green-400); color: var(--green-800); font-size: 10px; line-height: 12.5px; font-weight: 900; letter-spacing: .5px; padding: 3px 9px; border-radius: 4px; }
+  .inv-foot { border-top: 1px solid var(--slate-100); padding-top: 17px; text-align: center; font-size: 8px; line-height: 10px; color: var(--slate-400); }
+  .inv-foot b { display: block; color: var(--slate-600); font-weight: 600; padding: 4px 0 0; }
+  .email-head { border-bottom: 1px solid var(--slate-200); padding-bottom: 12px; display: flex; flex-direction: column; gap: 3px; font-size: 10px; line-height: 14px; }
+  .email-head .subj { font-size: 14px; line-height: 20px; font-weight: 700; color: var(--slate-900); margin-bottom: 4px; }
+  .email-body { font-size: 10px; line-height: 15px; color: var(--slate-800); }
+  .email-body p { margin: 0 0 10px; }
+  .hl { background: var(--amber-100); outline: 1px dashed var(--amber-500); outline-offset: 1px; }
+  .no-preview { margin: auto; text-align: center; color: var(--slate-500); font-size: 12px; line-height: 18px; max-width: 30ch; }
+
+  /* ---------- Footer / dialogs / toast ---------- */
+  .actionbar { position: sticky; bottom: 0; background: #fff; border-top: 1px solid var(--slate-200); padding: 12px 24px; margin: 0 0 0 0; display: flex; align-items: center; justify-content: space-between; z-index: 4; }
+  .btn-outline { background: #fff; border: 1px solid var(--action); color: var(--action); border-radius: 4px; padding: 9px 17px; }
+  .btn-reject { background: #fff; border: 1px solid var(--danger); color: var(--danger); border-radius: 4px; padding: 8px 20px; font-weight: 700; }
+  .btn-verify { background: var(--action); border: 1px solid var(--action); color: #fff; border-radius: 4px; padding: 8px 20px; font-weight: 700; }
+  .btn-verify:hover { background: #087a65; }
+  .decisions { display: flex; gap: 10px; align-items: center; }
+  .decision-hint { color: var(--slate-500); margin-right: 8px; }
+
+  dialog { border: 0; border-radius: var(--radius); padding: 0; width: min(440px, calc(100vw - 32px)); box-shadow: 0 20px 25px -5px rgba(0,0,0,.15); }
+  dialog::backdrop { background: rgba(15,23,42,.4); }
+  .dlg { padding: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; line-height: 19px; }
+  .dlg h2 { margin: 0; font-size: 16px; line-height: 22px; color: var(--slate-900); }
+  .dlg p { margin: 0; color: var(--slate-600); }
+  .dlg textarea { font: inherit; border: 1px solid var(--slate-300); border-radius: 4px; padding: 8px 10px; min-height: 80px; resize: vertical; }
+  .dlg .err { color: var(--red-700); font-size: 12px; }
+  .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+  .btn-plain { background: #fff; border: 1px solid var(--slate-300); color: var(--slate-700); border-radius: 4px; padding: 8px 16px; }
+
+  .toast { position: fixed; left: 50%; bottom: 80px; transform: translate(-50%, 12px); background: var(--slate-800); color: #fff; padding: 10px 16px; border-radius: 6px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 20; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1280px) {
+    .content { grid-template-columns: minmax(0, 1fr); }
+    .viewer { position: static; }
+    .sheet-wrap { overflow: visible; }
+  }
+  @media (max-width: 1100px) {
+    .side-by-side { grid-template-columns: 1fr; }
+    .claim-side { border-right: 0; border-bottom: 1px solid var(--slate-100); }
+  }
+  @media (max-width: 860px) {
+    .app, .app[data-sidebar="collapsed"] { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .attachments { grid-template-columns: 1fr; }
+    .item-summary { grid-template-columns: 32px 1fr; }
+    .item-summary .what { grid-column: 2; }
+    .item-summary .coding, .item-summary .amounts { grid-column: 2; text-align: left; }
+    .content { padding: 16px; }
+    .tabs { margin: 0 16px; overflow-x: auto; }
+    .decision-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Icon sprite (stand-ins for the Figma icon assets) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></symbol>
+    <symbol id="i-glasses" viewBox="0 0 24 24"><circle cx="6.5" cy="14.5" r="3.5"/><circle cx="17.5" cy="14.5" r="3.5"/><path d="M10 14.5h4M3 14.5 5 7h2M21 14.5 19 7h-2"/></symbol>
+    <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3v18l2.5-1.5L10 21l2-1.5 2 1.5 2.5-1.5L19 21V3l-2.5 1.5L14 3l-2 1.5L10 3 7.5 4.5z"/><path d="M8.5 9h7M8.5 13h7"/></symbol>
+    <symbol id="i-stamp" viewBox="0 0 24 24"><path d="M5 21h14M6 17h12v-3a2 2 0 0 0-2-2h-2l-.5-3.5a3 3 0 1 0-3 0L10 12H8a2 2 0 0 0-2 2z"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h4M14.5 15.5c0-1 2.5-1 2.5-2s-2.5-1-2.5 0"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12.5h5"/></symbol>
+    <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.5-1.5 1.7-2 3-2s2.5.5 3 2M14.5 10H18M14.5 13.5H18"/></symbol>
+    <symbol id="i-chev-up" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><path d="m20 11.5-7.8 7.8a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4.5M12 17.2h.01"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 9h6M9 13h6"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.5 3.2 8.2 7.5 9.5 4.3-1.3 7.5-5 7.5-9.5V6z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/></symbol>
+    <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.8-5"/></symbol>
+    <symbol id="i-minus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12h7"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 12h6M9 16h4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.5"/><path d="M20 4v4.5h-4.5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M2 13v2M22 13v2"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app" data-sidebar="open">
+
+  <!-- ===== Sidebar (d-Side menu) ===== -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <span class="brand-word">ezPay</span>
+      <span class="brand-chip">Carrot</span>
+    </div>
+    <div class="role-switch" role="group" aria-label="Workspace">
+      <button class="role" aria-pressed="true">Carrot</button>
+      <button class="role" aria-pressed="false">Overt</button>
+    </div>
+    <nav class="nav">
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-home"/></svg><span class="label">Home</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">Manage</div>
+      <a class="nav-link" href="#" aria-current="page"><svg class="i"><use href="#i-glasses"/></svg><span class="label">Checking Tasks</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">Payment requests</div>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-plus-circle"/></svg><span class="label">New C. Requests</span></a>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-receipt"/></svg><span class="label">My Requests</span></a>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-stamp"/></svg><span class="label">Supporting tasks</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">Advance</div>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-plus-circle"/></svg><span class="label">New Advance</span></a>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-quote"/></svg><span class="label">My Advance</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">Help</div>
+      <button class="nav-link" id="helpToggle" aria-expanded="true" aria-controls="helpSub"><svg class="i"><use href="#i-help"/></svg><span class="label">Help</span><svg class="i nav-caret"><use href="#i-chev-up"/></svg></button>
+      <div id="helpSub">
+        <a class="nav-link nav-sub" href="#">User Guide</a>
+        <a class="nav-link nav-sub" href="#">Funny Carrot Site</a>
+        <a class="nav-link nav-sub" href="#">FAQs</a>
+      </div>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-chat"/></svg><span class="label">My Feedback</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">My info</div>
+      <div class="nav-me"><svg class="i" style="width:20px;height:20px"><use href="#i-id"/></svg><div><b>Minato</b><span>PN:000007</span></div></div>
+    </nav>
+    <button class="collapse-btn" id="collapseBtn" aria-expanded="true"><span class="label">Collapse sidebar</span><svg class="i"><use href="#i-chev-left"/></svg></button>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <div class="main">
+    <header class="page-head"><h1>DIP2025171622</h1></header>
+
+    <div class="tabs" role="tablist" aria-label="Claim views">
+      <button class="tab" role="tab" aria-selected="false" aria-controls="panel-details" id="tab-details">Details</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="panel-workflow" id="tab-workflow">Workflow</button>
+      <button class="tab" role="tab" aria-selected="true" aria-controls="panel-ai" id="tab-ai">Details (AI-Enabled) ✨</button>
+    </div>
+
+    <div class="placeholder-panel" role="tabpanel" id="panel-details" aria-labelledby="tab-details" hidden>
+      <h2>Details</h2>
+      The standard Details view isn't in this prototype yet. It's the same claim without the AI checks, so it's a good next screen to bring over from Figma.
+    </div>
+    <div class="placeholder-panel" role="tabpanel" id="panel-workflow" aria-labelledby="tab-workflow" hidden>
+      <h2>Workflow</h2>
+      The approval workflow view isn't in this prototype yet.
+    </div>
+
+    <div class="content" role="tabpanel" id="panel-ai" aria-labelledby="tab-ai">
+      <div class="col-left">
+
+        <!-- 01 Basic & Payment Information -->
+        <section class="card" aria-labelledby="s01">
+          <div class="card-head">
+            <h2 class="sec-title" id="s01"><span class="sec-num">01</span>Basic &amp; Payment Information</h2>
+            <span class="card-meta">Claim Form Data</span>
+          </div>
+          <div class="fields">
+            <div class="field"><span class="f-label">Pay to (vendor/employee)</span><span class="f-value">Michael Scott</span></div>
+            <div class="field"><span class="f-label">Claim type</span><span class="f-value">Marketing Q3 Regional Conference</span></div>
+            <div class="field"><span class="f-label">Invoice/receipt number</span><span class="f-value" style="font-weight:400">1234567890123456</span></div>
+            <div class="field"><span class="f-label">Invoice/receipt date</span><span class="f-value">DD/MM/YYYY <svg class="i"><use href="#i-calendar"/></svg></span></div>
+            <div class="field rule span-4"><span class="f-label">Description</span><span class="f-value">Ritz Carlton Tokyo</span></div>
+            <div class="field rule"><span class="f-label">Payment terms</span><span class="f-value">[K000] Pay Immediately</span></div>
+            <div class="field rule"><span class="f-label">Payment method</span><span class="f-value">[G] IBG (Employee)</span></div>
+            <div class="field rule"><span class="f-label">House bank</span><span class="f-value">[MMI$] MMI Cash on Hand</span></div>
+            <div class="field rule"><span class="f-label">Advance number</span><span class="f-value">[ADV2501164] Trip to Tokyo</span></div>
+          </div>
+        </section>
+
+        <!-- 02 Workflow Officers -->
+        <section class="card" aria-labelledby="s02">
+          <div class="card-head">
+            <h2 class="sec-title" id="s02"><span class="sec-num">02</span>Workflow Officers</h2>
+            <button class="link-btn" data-toast="The approval matrix opens in a new view in the real product.">Approval Matrix</button>
+          </div>
+          <div class="fields">
+            <div class="field"><span class="f-label">Supporting officer (opt.)</span><span class="f-value">Dwight Schrute</span></div>
+            <div class="field"><span class="f-label">Approving officer</span><span class="f-value">Fenty Wap</span></div>
+            <div class="field"><span class="f-label">Proxy officers (opt.)</span><span class="f-value">Biggie Smalls</span></div>
+            <div class="field"><span class="f-label">Proxy group</span><span class="f-value">Coolio &amp; the gang</span></div>
+          </div>
+        </section>
+
+        <!-- 03 Line Items -->
+        <div class="items-head">
+          <h2 class="sec-title"><span class="sec-num">03</span>Line Items (3)</h2>
+          <span class="total-pill">Total: $1,240.50 SGD</span>
+        </div>
+        <div class="items" id="items"></div>
+
+        <!-- Attachments -->
+        <div class="attachments" id="attachments">
+          <section class="card att-box" aria-labelledby="pop">
+            <h3 id="pop"><svg class="i"><use href="#i-file"/></svg>Proof of Purchase (2)</h3>
+            <div id="files-proof" style="display:flex;flex-direction:column;gap:8px"></div>
+          </section>
+          <section class="card att-box" aria-labelledby="sup">
+            <h3 id="sup"><svg class="i"><use href="#i-file"/></svg>Supporting Documents</h3>
+            <div id="files-support" style="display:flex;flex-direction:column;gap:8px"></div>
+          </section>
+        </div>
+      </div>
+
+      <!-- ===== Document viewer ===== -->
+      <aside class="viewer" aria-label="Document viewer">
+        <div class="total-banner">
+          <div class="big"><span>Total claim amount</span><b>SGD 1,240.50</b></div>
+          <div class="split">Amt w/o GST: <code>SGD 1,159.50</code><br>Total GST: <code>SGD 81.00</code></div>
+        </div>
+        <div class="doc">
+          <div class="doc-tab">
+            <div class="name"><span class="pdf">PDF</span><span id="docName"></span></div>
+            <div>
+              <button class="icon-btn" aria-label="Open in new window" data-toast="Opens the file in a new window in the real product."><svg class="i"><use href="#i-external"/></svg></button>
+              <button class="icon-btn" aria-label="Close preview" id="closeDoc"><svg class="i"><use href="#i-x"/></svg></button>
+            </div>
+          </div>
+          <div class="doc-toolbar">
+            <div class="pages"><span id="docRef">NR-2026-000…</span><span style="color:#64748b">|</span><span><b>1</b> / 1</span></div>
+            <div class="zoom">
+              <button id="zoomOut" aria-label="Zoom out">−</button>
+              <span id="zoomVal" aria-live="polite">53%</span>
+              <button id="zoomIn" aria-label="Zoom in">+</button>
+            </div>
+            <div>
+              <button class="icon-btn" aria-label="Fit to width" id="zoomFit"><svg class="i"><use href="#i-expand"/></svg></button>
+              <button class="icon-btn" aria-label="Rotate" data-toast="Rotate isn't wired up in the prototype."><svg class="i"><use href="#i-rotate"/></svg></button>
+              <button class="icon-btn" aria-label="Download" data-toast="Download isn't wired up in the prototype."><svg class="i"><use href="#i-download"/></svg></button>
+            </div>
+          </div>
+          <div class="doc-canvas" id="docCanvas"><div class="sheet-wrap" id="sheetWrap"><div class="sheet" id="sheet"></div></div></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ===== Bottom action bar ===== -->
+    <footer class="actionbar">
+      <button class="btn-outline" data-toast="Goes back to Checking Tasks in the real product.">Go back</button>
+      <div class="decisions">
+        <span class="decision-hint" id="decisionHint" aria-live="polite"></span>
+        <button class="btn-reject" id="rejectBtn">Reject</button>
+        <button class="btn-verify" id="verifyBtn">Verify</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Dialogs -->
+<dialog id="verifyDlg" aria-labelledby="verifyTitle">
+  <form method="dialog" class="dlg">
+    <h2 id="verifyTitle">Verify with open issues?</h2>
+    <p id="verifyMsg"></p>
+    <div class="dlg-actions">
+      <button class="btn-plain" value="cancel">Keep reviewing</button>
+      <button class="btn-verify" value="confirm">Verify anyway</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="rejectDlg" aria-labelledby="rejectTitle">
+  <form method="dialog" class="dlg" id="rejectForm">
+    <h2 id="rejectTitle">Reject this claim</h2>
+    <p>The claimant sees this reason and can resubmit.</p>
+    <label for="rejectReason" class="sr-only">Reason for rejecting</label>
+    <textarea id="rejectReason" placeholder="e.g. Attach the flight e-ticket and an approval email that states the approver's title."></textarea>
+    <span class="err" id="rejectErr" hidden>Add a reason so the claimant knows what to fix.</span>
+    <div class="dlg-actions">
+      <button class="btn-plain" value="cancel" formnovalidate>Cancel</button>
+      <button class="btn-reject" value="confirm" id="rejectConfirm">Reject claim</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =========================================================
+   Mock data. Everything here is placeholder content taken
+   from the Figma frame; entries marked `placeholder: true`
+   were added to fill counts the design shows (e.g. 3/10).
+   ========================================================= */
+const FILES = [
+  { id: 'air',   group: 'proof',   name: 'Air Ticket SQ638.pdf',  sub: 'Air Ticket_Alison.pdf • 412 KB', docName: 'Air Ticket_Alison.pdf', ref: 'SQ638-ETKT' },
+  { id: 'hotel', group: 'proof',   name: 'Hotel Tokyo Folio.pdf', sub: 'RitzCarlton_Receipt.pdf • Page 1-2', docName: 'Hotel_Invoice_Accommodation_Alison.pdf', ref: 'NR-2026-000…' },
+  { id: 'email', group: 'support', name: 'Air Ticket & Hotel Deviation Email_Alison.pdf', sub: 'Alison • 1 Oct 2025, 08:00 • Email approval', docName: 'Air Ticket & Hotel Deviation Email_Alison.pdf', ref: 'EML-0110' },
+];
+
+const ITEMS = [
+  {
+    n: 1, category: 'Airfare', title: 'Airfare — Singapore to Tokyo (SQ638)', attachment: 'email',
+    coding: ['CC: 12345 - Marketing', 'FC: FC-99 - Operations', 'GL: 720100', 'AOR: None | IO No: None'],
+    net: '$450.00', gst: '$40.50', total: '$490.50',
+    detail: {
+      total: 'SGD 490.50', excl: '450.00', gst: '40.50', taxCode: 'P9',
+      description: 'Return economy airfare, Singapore to Tokyo (SQ638), for the Marketing Q3 Regional Conference',
+      invNo: 'SQ638-ETKT-0021', invDate: '2025-09-28',
+      fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '720100 [AIRFARE-OVERSEAS]', aor: 'AOR-CONF2',
+    },
+    compare: [
+      { label: 'Ticket date', value: '2025-09-28' },
+      { label: 'Ticket number', value: '618-2401187733' },
+      { label: 'Amount (excl. GST)', value: '450.00' },
+    ],
+    flags: [],
+    checks: 'allPass',
+  },
+  {
+    n: 2, category: 'Accommodation', title: 'Hotel Tokyo from DD-MM to DD-MM', attachment: 'email',
+    coding: ['CC: FPP', 'FC: TRG/PT(Tech)', 'GL: 300-602', 'AOR: AOR-CONF2'],
+    net: '$1,769.02', gst: '$0.00', total: '$1,769.02',
+    detail: {
+      total: 'SGD 1,769.02', excl: '1,769.02', gst: '0.00', taxCode: 'P0',
+      description: 'Hotel stay at Hôtel 34B Astotel, Paris — 2 rooms x 3 nights (15–18 Oct 2026), Double Room with Breakfast + Breakfast Add-on, City Tax included',
+      invNo: 'INV-34B-20260721-0156', invDate: '2026-07-21',
+      fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '300-602 [TPT&TRAVELLING-OVERSEAS]', aor: 'AOR-CONF2',
+    },
+    compare: [
+      { label: 'Invoice / Folio Date', value: '2025-10-01' },
+      { label: 'Invoice/Folio Number', value: '061-2509012346' },
+      { label: 'Amount (excl. GST)', value: '1,934.70' },
+    ],
+    flags: [
+      { id: 'gst',   name: 'GST Amount Mismatch',   meta: 'Confidence: 85%', metaChip: true, field: 'gst',   user: '0.00',     ai: '10.90' },
+      { id: 'total', name: 'Total Amount Mismatch', meta: 'Difference: +10.90',               field: 'total', user: '1,934.70', ai: '1,945.60' },
+    ],
+    checks: [
+      { id: 'c1', status: 'fail', name: 'For non-approved vendor: an email approval from a Senior Manager, Head, Director, or Senior Director must be attached',
+        sub: "Email approval present but approver's title is missing.", conf: 85,
+        expected: 'Email approval present AND approver holds one of: Senior Manager, Head, Director, Senior Director',
+        actual: "Email approval is present (approved by Grayson Chong), but the approver's title is not mentioned anywhere in the email document — title could not be determined",
+        lowConf: { field: 'Email Approval Approver Title (0%):', text: "Field not present on this document. The approver's title or designation is not mentioned anywhere in the email." },
+        doc: 'email' },
+      { id: 'c2', status: 'fail', name: 'A flight itinerary (electronic ticket) must be attached',
+        expected: 'An e-ticket or itinerary showing passenger name, flight number and dates',
+        actual: 'No itinerary or e-ticket found among the attached documents for this line item', conf: 92 },
+      { id: 'c3', status: 'fail', placeholder: true, name: 'Nightly room rate must be within the overseas lodging cap for the destination',
+        expected: 'Room rate per night ≤ lodging cap for Tokyo',
+        actual: 'Receipt shows a Paris property, so the AI could not match the rate to the Tokyo cap', conf: 70 },
+      { id: 'p1', status: 'pass', placeholder: true, name: 'Receipt is issued in the claimant\'s or traveller\'s name' },
+      { id: 'p2', status: 'pass', placeholder: true, name: 'Receipt is not a duplicate of an earlier claim' },
+      { id: 'p3', status: 'pass', placeholder: true, name: 'Receipt shows the amount was paid in full' },
+      { id: 'p4', status: 'pass', placeholder: true, name: 'GL account matches the expense category' },
+      { id: 'p5', status: 'pass', placeholder: true, name: 'Currency is converted at the rate on the receipt date' },
+      { id: 'n1', status: 'na',   placeholder: true, name: 'Entertainment guest list must be attached' },
+      { id: 'n2', status: 'na',   placeholder: true, name: 'Asset tag required for equipment over SGD 2,000' },
+    ],
+  },
+  {
+    n: 3, category: 'Airfare', title: 'Airfare — Singapore to Tokyo (SQ638)', attachment: 'email',
+    coding: ['CC: 12345 - Marketing', 'FC: FC-99 - Operations', 'GL: 720100', 'AOR: None | IO No: None'],
+    net: '$450.00', gst: '$40.50', total: '$490.50',
+    detail: {
+      total: 'SGD 490.50', excl: '450.00', gst: '40.50', taxCode: 'P9',
+      description: 'Return economy airfare, Singapore to Tokyo (SQ638), for the Marketing Q3 Regional Conference',
+      invNo: 'SQ638-ETKT-0022', invDate: '2025-09-28',
+      fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '720100 [AIRFARE-OVERSEAS]', aor: 'AOR-CONF2',
+    },
+    compare: [
+      { label: 'Ticket date', value: '2025-09-28' },
+      { label: 'Ticket number', value: '618-2401187734' },
+      { label: 'Amount (excl. GST)', value: '450.00' },
+    ],
+    flags: [],
+    checks: 'allPass',
+  },
+];
+
+const PASS_SET = [
+  "Receipt is issued in the claimant's or traveller's name",
+  'Receipt is not a duplicate of an earlier claim',
+  'Receipt shows the amount was paid in full',
+  'GL account matches the expense category',
+  'Currency is converted at the rate on the receipt date',
+  'A flight itinerary (electronic ticket) must be attached',
+  'Travel dates fall within the approved advance period',
+  'Fare class is within the travel policy for the grade',
+];
+
+/* ---------- State ---------- */
+const state = {
+  activeItem: 2,
+  activeFile: 'hotel',
+  zoom: 53,
+  panelOpen: { a: true, b: true },
+  filter: 'all',
+  openCheck: 'c1',
+  resolvedFlags: new Set(),
+  resolvedChecks: new Set(),
+  comments: {},
+  rerunning: false,
+};
+
+// Turn 'allPass' items into concrete checks
+ITEMS.forEach(it => {
+  if (it.checks === 'allPass') {
+    it.checks = PASS_SET.map((name, i) => ({ id: `i${it.n}p${i}`, status: 'pass', placeholder: true, name }))
+      .concat([{ id: `i${it.n}n1`, status: 'na', placeholder: true, name: 'Entertainment guest list must be attached' },
+               { id: `i${it.n}n2`, status: 'na', placeholder: true, name: 'Asset tag required for equipment over SGD 2,000' }]);
+  }
+});
+
+/* ---------- Helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ico = (name, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const fileById = id => FILES.find(f => f.id === id);
+
+function openIssues(item) {
+  const flags = item.flags.filter(f => !state.resolvedFlags.has(f.id)).length;
+  const fails = item.checks.filter(c => c.status === 'fail' && !state.resolvedChecks.has(c.id)).length;
+  return flags + fails;
+}
+function totalOpenIssues() { return ITEMS.reduce((n, it) => n + openIssues(it), 0); }
+
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ---------- Line items ---------- */
+function summaryCard(it) {
+  const issues = openIssues(it);
+  const aiState = issues
+    ? `<span class="ai-dot warn">${ico('alert')}${issues} issue${issues > 1 ? 's' : ''} to review</span>`
+    : `<span class="ai-dot">${ico('check-circle')}AI checks passed</span>`;
+  return `
+  <button class="item-summary" data-open-item="${it.n}" aria-label="Open line item ${it.n}: ${esc(it.title)}">
+    <span class="num">${it.n}</span>
+    <span class="what">
+      <span class="chip">${esc(it.category)}</span>
+      <span class="item-title">${esc(it.title)}</span>
+      ${aiState}
+    </span>
+    <span class="coding">${it.coding.map(esc).join('<br>')}</span>
+    <span class="amounts">Net: ${it.net}<br>GST (9%): ${it.gst}<b>Total: ${it.total}</b></span>
+  </button>`;
+}
+
+function claimSide(it) {
+  const d = it.detail;
+  const gstFixed = state.resolvedFlags.has('gst') && it.n === 2;
+  const totalFixed = state.resolvedFlags.has('total') && it.n === 2;
+  const gst = gstFixed ? '10.90' : d.gst;
+  const total = totalFixed ? 'SGD 1,945.60' : d.total;
+  const saved = state.comments[it.n];
+  return `
+  <div class="claim-side">
+    <div class="box amount-box">
+      <div class="amount-row"><span>Total Amount</span><b>${total}</b></div>
+      <div class="amount-split">
+        <div><span>Excl. GST</span><b>${d.excl}</b></div>
+        <div><span>GST</span><b class="${gstFixed ? 'changed' : ''}">${gst}</b></div>
+        <div><span>Tax Code</span><b>${d.taxCode}</b></div>
+      </div>
+    </div>
+    <div class="field"><span class="f-label">Description</span><div class="box desc-box">${esc(d.description)}</div></div>
+    <div class="pair">
+      <div class="field"><span class="f-label">Invoice number</span><span>${esc(d.invNo)}</span></div>
+      <div class="field"><span class="f-label">Invoice date</span><span style="font-weight:500">${esc(d.invDate)}</span></div>
+    </div>
+    <div class="box coding-box">
+      <div><span>Fund Center:</span>${esc(d.fund)}</div>
+      <div><span>Cost Center:</span>${esc(d.cost)}</div>
+      <div><span>GL Account:</span>${esc(d.gl)}</div>
+      <div><span>AOR:</span>${esc(d.aor)}</div>
+    </div>
+    <div><button class="link-btn" data-show-file="${it.attachment}">${ico('clip')}Email approval.pdf</button></div>
+    ${saved ? `<div class="saved-note"><b>Your note:</b> ${esc(saved)}</div>` : ''}
+    <div class="comments">
+      <label for="comment-${it.n}">Comments</label>
+      <input id="comment-${it.n}" type="text" placeholder="Add a comment or note for Line Item ${it.n}…" autocomplete="off">
+      <button class="btn-teal" data-save-comment="${it.n}">${ico('alert')}Save</button>
+    </div>
+  </div>`;
+}
+
+function panelA(it) {
+  const open = state.panelOpen.a;
+  const openFlags = it.flags.filter(f => !state.resolvedFlags.has(f.id));
+  const count = openFlags.length
+    ? `<span class="count-fail">${openFlags.length} FLAGGED</span>`
+    : `<span class="count-ok">ALL MATCH</span>`;
+  const rows = it.compare.map(r => `
+    <div class="cmp-row"><span class="lbl">${esc(r.label)}</span><span class="val">${esc(r.value)}</span><span class="ok" aria-label="Matches">${ico('check')}</span></div>`).join('');
+  const flags = it.flags.map(f => state.resolvedFlags.has(f.id)
+    ? `<div class="cmp-resolved"><span><span class="lbl">${esc(f.name.replace(' Mismatch', ''))}</span> updated to <b>${f.ai}</b></span><button class="undo" data-undo-flag="${f.id}">Undo</button></div>`
+    : `<div class="cmp-flag">
+        <div class="top"><span class="name">${esc(f.name)}</span><span class="meta ${f.metaChip ? 'chip-amber' : ''}">${esc(f.meta)}</span></div>
+        <div class="bottom"><span class="vals">User Claim: <code>${f.user}</code> | AI Extracted: <code class="ai">${f.ai}</code></span>
+        <button class="btn-teal sm" data-fix-flag="${f.id}" aria-label="Update ${esc(f.name)} to ${f.ai}">Update</button></div>
+      </div>`).join('');
+  return `
+  <div class="panel a">
+    <button class="panel-toggle" data-toggle-panel="a" aria-expanded="${open}" aria-controls="panelA-${it.n}">
+      <span class="panel-title">${ico('clipboard')}Line data extraction comparison</span>
+      <span class="panel-right">${count}${ico('chev-up', 'chev')}</span>
+    </button>
+    <div class="panel-body" id="panelA-${it.n}" ${open ? '' : 'hidden'}>${rows}${flags}</div>
+  </div>`;
+}
+
+function checkCard(c) {
+  const resolved = state.resolvedChecks.has(c.id);
+  const isFail = c.status === 'fail' && !resolved;
+  const isOpen = isFail && state.openCheck === c.id;
+  const statusIcon = resolved ? `<span class="st" style="color:var(--green-500)">${ico('check-circle')}</span>`
+    : c.status === 'fail' ? `<span class="st" style="color:var(--red-600)">${ico('x-circle')}</span>`
+    : c.status === 'pass' ? `<span class="st" style="color:var(--green-500)">${ico('check-circle')}</span>`
+    : `<span class="st" style="color:var(--slate-400)">${ico('minus-circle')}</span>`;
+  const badge = resolved ? `<span class="badge resolved">Resolved</span>`
+    : isOpen ? `<span class="badge ai">AI • ${c.conf}% conf.</span>`
+    : c.status === 'fail' ? `<span class="badge fail">Fail</span>`
+    : c.status === 'pass' ? `<span class="badge pass">Pass</span>`
+    : `<span class="badge na">N/A</span>`;
+  const cls = ['check', resolved ? 'resolved' : c.status === 'fail' ? 'fail' : '', isOpen ? 'open' : ''].join(' ');
+  const detail = isOpen ? `
+    <div class="check-detail">
+      <div class="discrepancy">
+        <div><h4>Expected</h4>${esc(c.expected)}</div>
+        <div><h4>Actual</h4>${esc(c.actual)}</div>
+      </div>
+      ${c.lowConf ? `<div class="low-conf"><b>• Low extraction confidence:</b><span><b>${esc(c.lowConf.field)}</b> ${esc(c.lowConf.text)}</span></div>` : ''}
+      <div class="check-actions">
+        <button class="link-btn" data-show-file="${c.doc || 'email'}" data-scroll-attachments>${ico('clip')}Invoices / Supporting Documents</button>
+        <button class="btn-teal" data-resolve-check="${c.id}">Mark resolved</button>
+      </div>
+    </div>` : '';
+  return `
+  <div class="${cls}">
+    <button class="check-row" ${isFail ? `data-open-check="${c.id}" aria-expanded="${isOpen}"` : 'disabled'}>
+      <span class="check-main">${statusIcon}<span class="check-name">${esc(c.name)}${isOpen && c.sub ? `<span class="check-sub">${esc(c.sub)}</span>` : ''}</span></span>
+      ${badge}
+    </button>
+    ${resolved ? `<div class="check-detail" style="padding-top:0"><button class="undo" data-unresolve-check="${c.id}">Undo</button></div>` : ''}
+    ${detail}
+  </div>`;
+}
+
+function panelB(it) {
+  const open = state.panelOpen.b;
+  const all = it.checks;
+  const failing = all.filter(c => c.status === 'fail' && !state.resolvedChecks.has(c.id));
+  const counts = {
+    all: all.length,
+    fail: failing.length,
+    pass: all.filter(c => c.status === 'pass' || state.resolvedChecks.has(c.id)).length,
+    na: all.filter(c => c.status === 'na').length,
+  };
+  const visible = all.filter(c => {
+    const resolved = state.resolvedChecks.has(c.id);
+    if (state.filter === 'fail') return c.status === 'fail' && !resolved;
+    if (state.filter === 'pass') return c.status === 'pass' || resolved;
+    if (state.filter === 'na') return c.status === 'na';
+    return true;
+  }).sort((a, b) => rank(a) - rank(b));
+  function rank(c) { if (c.status === 'fail' && !state.resolvedChecks.has(c.id)) return 0; if (state.resolvedChecks.has(c.id)) return 1; return c.status === 'pass' ? 2 : 3; }
+  const count = counts.fail ? `<span class="count-fail">${counts.fail}/${counts.all} FLAGGED</span>` : `<span class="count-ok">ALL CLEAR</span>`;
+  const f = (key, label, extra = '') => `<button class="filter ${extra}" data-filter="${key}" aria-pressed="${state.filter === key}">${label} (${counts[key]})</button>`;
+  return `
+  <div class="panel b">
+    <button class="panel-toggle" data-toggle-panel="b" aria-expanded="${open}" aria-controls="panelB-${it.n}">
+      <span class="panel-title">${ico('shield')}Finance &amp; policy checks</span>
+      <span class="panel-right">${count}${ico('chev-up', 'chev')}</span>
+    </button>
+    <div class="panel-body" id="panelB-${it.n}" ${open ? '' : 'hidden'}>
+      <div class="filters" role="group" aria-label="Filter checks">${f('all', 'All')}${f('fail', 'Fail', 'fail')}${f('pass', 'Pass', 'pass')}${f('na', 'Not Applicable')}</div>
+      ${visible.length ? visible.map(checkCard).join('') : `<div class="empty-filter">No checks in this group. Pick another filter to see the rest.</div>`}
+    </div>
+  </div>`;
+}
+
+function aiSide(it) {
+  const issues = openIssues(it);
+  const banner = issues
+    ? `<div class="ai-banner warn"><span class="msg">${ico('alert')}${issues} issue(s) — review required</span><span class="pill">Action needed</span></div>`
+    : `<div class="ai-banner ok"><span class="msg">${ico('check-circle')}No open issues on this line item</span><span class="pill">Ready</span></div>`;
+  return `
+  <div class="ai-side">
+    <div class="ai-head"><span class="ico">${ico('bolt')}</span><h3>AI line item verification &amp; policy checker</h3><span class="live">LIVE</span></div>
+    ${banner}
+    <div class="panels">${panelA(it)}${panelB(it)}</div>
+  </div>`;
+}
+
+function expandedCard(it) {
+  const issues = openIssues(it);
+  return `
+  <section class="item-open" aria-label="Line item ${it.n}">
+    <div class="item-strip">
+      <div class="strip-left">
+        <span class="strip-num">${it.n}</span>
+        <h3 class="strip-title" style="margin:0">${esc(it.title)}</h3>
+        <span class="tag-teal">${esc(it.category)}</span>
+        ${issues ? `<span class="tag-review">Review Required</span>` : `<span class="tag-ready">Ready to verify</span>`}
+      </div>
+      <div class="strip-right">
+        <button class="rerun" data-rerun aria-busy="${state.rerunning}">${ico('bot')}${state.rerunning ? 'Checking…' : 'Re-run Line Check'}</button>
+        <button class="item-close" data-close-item aria-label="Collapse line item ${it.n}">${ico('chev-up')}</button>
+      </div>
+    </div>
+    <div class="side-by-side">${claimSide(it)}${aiSide(it)}</div>
+  </section>`;
+}
+
+function renderItems() {
+  $('#items').innerHTML = ITEMS.map(it => it.n === state.activeItem ? expandedCard(it) : summaryCard(it)).join('');
+  renderDecisionHint();
+}
+
+/* ---------- Attachments + viewer ---------- */
+function fileBtn(f) {
+  const active = state.activeFile === f.id;
+  return `<button class="file" data-show-file="${f.id}" aria-pressed="${active}">
+    <span class="file-start"><span class="pdf">PDF</span><span><span class="file-name">${esc(f.name)}</span><span class="file-sub">${esc(f.sub)}</span></span></span>
+    <span class="file-end">${ico(active ? 'eye' : 'chev-right')}</span>
+  </button>`;
+}
+function renderFiles() {
+  $('#files-proof').innerHTML = FILES.filter(f => f.group === 'proof').map(fileBtn).join('');
+  $('#files-support').innerHTML = FILES.filter(f => f.group === 'support').map(fileBtn).join('');
+}
+
+const SHEETS = {
+  hotel: () => `
+    <div class="inv-head">
+      <div>
+        <div class="inv-brand">HÔTEL <em>34</em><sub>B</sub></div>
+        <div class="inv-sub">Astotel Paris</div>
+        <div class="stars" aria-label="4 stars">★★★★☆</div>
+        <div class="muted" style="padding-top:4px">34 rue Bergère, 75009 Paris, France<br>Tél. : +33 1 47 70 34 34<br>hotel34b@astotel.com</div>
+      </div>
+      <div class="inv-right">
+        <div class="ttl">INVOICE</div>
+        <div>Invoice No. : <code>INV-34B-20260721-0156</code></div>
+        <div>Issue Date : 21 July 2026</div>
+        <div>Folio No. : 3487</div>
+        <div>Reservation No. : RES-34B-20261015-0789</div>
+      </div>
+    </div>
+    <div class="guest">
+      <div><h5>Guest details</h5><p>Guest Name : <b>Alison</b></p><p>Number of Guests : 2 Pax</p><p>Rooms Booked : 2 Rooms</p></div>
+      <div><h5>Stay details</h5><p>Check-In : 15 October 2026 – 10:00 AM</p><p>Check-Out : 18 October 2026 – 9:00 AM</p><p>Duration : 3 Nights</p></div>
+    </div>
+    <div>
+      <table class="inv-table">
+        <thead><tr><th>DESCRIPTION</th><th class="c">QTY</th><th class="r">RATE (EUR)</th><th class="r">AMOUNT (EUR)</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:500">Double — Room with Breakfast<small>15 Oct 2026 – 18 Oct 2026 (2 rooms x 3 nights)</small></td><td class="c">2</td><td class="r">185.00</td><td class="r">1,000.00</td></tr>
+          <tr><td style="font-weight:500">Breakfast Add-on</td><td class="c">2</td><td class="r">55.00</td><td class="r">110.00</td></tr>
+        </tbody>
+      </table>
+      <div class="inv-totals">
+        <div><span class="muted">Subtotal:</span><span>1,110.00 EUR</span></div>
+        <div><span class="muted">City Tax:</span><span>20.00 EUR</span></div>
+        <div class="grand"><span>TOTAL AMOUNT:</span><b>1,130.00 EUR</b></div>
+      </div>
+    </div>
+    <div class="paid">
+      <div><p>Payment Method : Visa **** 4832</p><p>Payment Date : 21 July 2026</p><p>Amount Paid : 1,130.00 EUR</p></div>
+      <span class="paid-stamp">PAID IN FULL</span>
+    </div>
+    <div class="inv-foot">Thank you for staying with us. We wish you a pleasant stay in Paris.<b>SARL ASTOTEL — 34 rue Bergère, 75009 Paris, France</b>SIRET : 422 075 173 000 33 • TVA FR 98422075173 • APE : 5510Z</div>`,
+  email: () => `
+    <div class="email-head">
+      <div class="subj">RE: Air ticket &amp; hotel deviation — Tokyo trip</div>
+      <div><span class="muted">From:</span> <b>Grayson Chong</b> &lt;grayson.chong@example.com&gt;</div>
+      <div><span class="muted">To:</span> Alison</div>
+      <div><span class="muted">Date:</span> 1 Oct 2025, 08:00</div>
+    </div>
+    <div class="email-body">
+      <p>Hi Alison,</p>
+      <p>Approved. Please go ahead with the airfare and the hotel booking as proposed, including the non-approved vendor for the hotel.</p>
+      <p>Thanks,<br><span class="hl" title="No title or designation in the signature">Grayson</span></p>
+    </div>
+    <div class="saved-note" style="font-size:10px"><b>Why this was flagged:</b> the signature has no title or designation, so the AI can't confirm the approver is a Senior Manager or above.</div>`,
+  air: () => `<div class="no-preview">${ico('file')}<br>Preview for this file isn't in the prototype yet.<br>Add one in the <code>SHEETS</code> object.</div>`,
+};
+
+function renderViewer() {
+  const f = fileById(state.activeFile);
+  $('#docName').textContent = f ? f.docName : 'No file selected';
+  $('#docRef').textContent = f ? f.ref : '—';
+  $('#sheet').innerHTML = f ? SHEETS[f.id]() : `<div class="no-preview">Pick a file from Proof of Purchase or Supporting Documents to preview it here.</div>`;
+  applyZoom();
+}
+function applyZoom() {
+  // 53% in the design maps to the sheet's natural 478px width
+  const scale = state.zoom / 53;
+  const sheet = $('#sheet');
+  sheet.style.transform = `scale(${scale})`;
+  $('#sheetWrap').style.width = `${478 * scale}px`;
+  $('#sheetWrap').style.height = `${sheet.offsetHeight * scale}px`;
+  $('#zoomVal').textContent = `${state.zoom}%`;
+}
+
+/* ---------- Decision bar ---------- */
+function renderDecisionHint() {
+  const n = totalOpenIssues();
+  $('#decisionHint').textContent = n ? `${n} open issue${n > 1 ? 's' : ''}` : 'All AI issues resolved';
+}
+
+/* ---------- Events ---------- */
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, a');
+  if (!t) return;
+
+  if (t.matches('a[href="#"]')) { e.preventDefault(); toast('Navigation is not wired up in the prototype.'); return; }
+  if (t.dataset.toast) { toast(t.dataset.toast); return; }
+
+  if (t.dataset.openItem) { state.activeItem = +t.dataset.openItem; state.filter = 'all'; renderItems(); $('#items .item-open')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+  if ('closeItem' in t.dataset) { state.activeItem = null; renderItems(); return; }
+
+  if (t.dataset.togglePanel) { const k = t.dataset.togglePanel; state.panelOpen[k] = !state.panelOpen[k]; renderItems(); return; }
+  if (t.dataset.filter) { state.filter = t.dataset.filter; renderItems(); return; }
+  if (t.dataset.openCheck) { state.openCheck = state.openCheck === t.dataset.openCheck ? null : t.dataset.openCheck; renderItems(); return; }
+
+  if (t.dataset.fixFlag) {
+    state.resolvedFlags.add(t.dataset.fixFlag);
+    renderItems(); toast('Claim value updated to the AI-extracted amount.'); return;
+  }
+  if (t.dataset.undoFlag) { state.resolvedFlags.delete(t.dataset.undoFlag); renderItems(); return; }
+  if (t.dataset.resolveCheck) {
+    state.resolvedChecks.add(t.dataset.resolveCheck);
+    const it = ITEMS.find(i => i.n === state.activeItem);
+    const next = it?.checks.find(c => c.status === 'fail' && !state.resolvedChecks.has(c.id));
+    state.openCheck = next ? next.id : null;
+    renderItems(); toast('Check marked as resolved.'); return;
+  }
+  if (t.dataset.unresolveCheck) { state.resolvedChecks.delete(t.dataset.unresolveCheck); renderItems(); return; }
+
+  if (t.dataset.saveComment) {
+    const n = +t.dataset.saveComment;
+    const input = $(`#comment-${n}`);
+    if (!input.value.trim()) { input.focus(); toast('Type a comment first, then save.'); return; }
+    state.comments[n] = input.value.trim();
+    renderItems(); toast(`Comment saved on line item ${n}.`); return;
+  }
+
+  if ('rerun' in t.dataset) {
+    if (state.rerunning) return;
+    state.rerunning = true; renderItems();
+    setTimeout(() => { state.rerunning = false; renderItems(); toast('Line check finished. No new issues found.'); }, 1400);
+    return;
+  }
+
+  if (t.dataset.showFile) {
+    state.activeFile = t.dataset.showFile;
+    renderFiles(); renderViewer();
+    if ('scrollAttachments' in t.dataset) $('#attachments').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.innerWidth <= 1280) document.querySelector('.viewer').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+});
+
+// Tabs
+document.querySelectorAll('[role="tab"]').forEach(tab => tab.addEventListener('click', () => {
+  document.querySelectorAll('[role="tab"]').forEach(x => x.setAttribute('aria-selected', x === tab));
+  document.querySelectorAll('[role="tabpanel"]').forEach(p => p.hidden = p.id !== tab.getAttribute('aria-controls'));
+}));
+
+// Sidebar
+$('#collapseBtn').addEventListener('click', e => {
+  const app = $('#app');
+  const collapsed = app.dataset.sidebar === 'collapsed';
+  app.dataset.sidebar = collapsed ? 'open' : 'collapsed';
+  e.currentTarget.setAttribute('aria-expanded', collapsed);
+  e.currentTarget.setAttribute('aria-label', collapsed ? 'Collapse sidebar' : 'Expand sidebar');
+});
+$('#helpToggle').addEventListener('click', e => {
+  const open = e.currentTarget.getAttribute('aria-expanded') === 'true';
+  e.currentTarget.setAttribute('aria-expanded', !open);
+  $('#helpSub').hidden = open;
+});
+document.querySelectorAll('.role').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.role').forEach(x => x.setAttribute('aria-pressed', x === b));
+}));
+
+// Viewer controls
+$('#zoomIn').addEventListener('click', () => { state.zoom = Math.min(150, state.zoom + 10); applyZoom(); });
+$('#zoomOut').addEventListener('click', () => { state.zoom = Math.max(30, state.zoom - 10); applyZoom(); });
+$('#zoomFit').addEventListener('click', () => {
+  const avail = $('#docCanvas').clientWidth - 32;
+  state.zoom = Math.round(53 * avail / 478); applyZoom();
+});
+$('#closeDoc').addEventListener('click', () => { state.activeFile = null; renderFiles(); renderViewer(); });
+
+// Decisions
+$('#verifyBtn').addEventListener('click', () => {
+  const n = totalOpenIssues();
+  if (!n) { toast('Claim verified and sent to the approving officer.'); return; }
+  $('#verifyMsg').textContent = `${n} AI issue${n > 1 ? 's are' : ' is'} still open. Verifying now sends the claim to the approving officer with ${n > 1 ? 'these' : 'this'} unresolved.`;
+  $('#verifyDlg').showModal();
+});
+$('#verifyDlg').addEventListener('close', e => {
+  if (e.target.returnValue === 'confirm') toast('Claim verified with open issues noted.');
+});
+$('#rejectBtn').addEventListener('click', () => { $('#rejectErr').hidden = true; $('#rejectReason').value = ''; $('#rejectDlg').showModal(); });
+$('#rejectConfirm').addEventListener('click', e => {
+  if (!$('#rejectReason').value.trim()) { e.preventDefault(); $('#rejectErr').hidden = false; $('#rejectReason').focus(); }
+});
+$('#rejectDlg').addEventListener('close', e => {
+  if (e.target.returnValue === 'confirm') toast('Claim rejected and returned to the claimant.');
+});
+
+// Enter to save a comment
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('.comments input')) {
+    e.preventDefault();
+    e.target.closest('.comments').querySelector('[data-save-comment]').click();
+  }
+});
+window.addEventListener('resize', applyZoom);
+
+/* ---------- Init ---------- */
+renderItems();
+renderFiles();
+renderViewer();
+</script>
+</body>
+</html>

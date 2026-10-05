@@ -1,56 +1,47 @@
 # ezPay Design Hub
 
-A monorepo for ezPay UI design prototypes. Two parallel implementations for designer collaboration and testing.
+A sandbox for ezPay UI prototypes, built from Figma with Claude. Each prototype is
+self-contained so it can be opened, changed and thrown away without affecting the others.
 
 ## Prototypes
 
-### `/prototypes/claude-design/`
-Standalone HTML prototype — a single, self-contained ezPay claim form artifact. Open `index.html` in a browser or use with Claude Code.
+### `prototypes/ai-checker/`
+The checking officer's **AI Checker** screen: reviewing a submitted claim with AI line-item
+verification and policy checks side by side, plus a receipt viewer.
 
-**Setup:**
-```bash
-cd prototypes/claude-design
-# Open index.html in a browser, or
-claude --open .
-```
+- Built from Figma: [AI-Checker → CO frame](https://www.figma.com/design/L0DJ6cw857R3z29OoUpsQg/AI-Checker?node-id=103-25013)
+- One HTML file, no build step. Open `index.html` in a browser.
 
-### `/prototypes/lovable/`
-Full React + Vite application exported from Lovable. Complete ezPay claim submission flow with all components.
+What you can click through:
+- Expand any line item; item 2 carries the AI findings
+- Accept an AI-extracted value with **Update** (and undo it)
+- Filter policy checks by All / Fail / Pass / Not Applicable, open a failed check, mark it resolved
+- Pick a file under Proof of Purchase or Supporting Documents to preview it on the right
+- Zoom the document viewer, collapse the sidebar, save a line-item comment
+- **Verify** warns when AI issues are still open; **Reject** asks for a reason
 
-**Setup:**
-```bash
-cd prototypes/lovable
-npm install
-npm run dev
-```
+### `prototypes/lovable/` (planned)
+The ezPay claim submission flow exported from Lovable (React + Vite).
 
-## For Designers
-
-Clone this repo and open either prototype in Claude Code:
+## Working on it with Claude Code
 
 ```bash
 git clone https://github.com/lwannacrytlithetime/ezpay-design-hub.git
 cd ezpay-design-hub
-
-# Option 1: Quick HTML prototype
-cd prototypes/claude-design
-claude --open .
-
-# Option 2: Full React app
-cd prototypes/lovable
-npm install
-claude --open .
+claude
 ```
 
-Both prototypes work with the Claude Code VS Code extension for collaborative editing.
+Then ask for changes in plain language, e.g. "in the AI checker, make the low-confidence
+note collapsible". Claude reads `CLAUDE.md` for the conventions and context.
 
-## Architecture
+## Structure
 
-- **Monorepo structure**: Each prototype is independent and self-contained
-- **No shared dependencies**: Simplifies setup and avoids version conflicts
-- **Claude Code ready**: `.claudeignore` and `CLAUDE.md` at root for context
-
-## Project Context
-
-See `CLAUDE.md` for architecture, coding conventions, and ezPay-specific context.
-# ezpay-design-hub
+```
+ezpay-design-hub/
+├── CLAUDE.md            context and conventions for Claude
+├── .claudeignore        files Claude should skip
+├── README.md
+└── prototypes/
+    └── ai-checker/
+        └── index.html
+```
