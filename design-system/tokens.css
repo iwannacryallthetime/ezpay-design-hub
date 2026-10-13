@@ -1,0 +1,222 @@
+/* =====================================================================
+   ezPay design tokens
+   Pulled from the AI checker and requestor form prototypes.
+
+   Two layers:
+   1. Palette     Raw colours, named by hue and step. Only the semantic
+                  layer below references these.
+   2. Semantic    What a colour is for. Components (components.css) use
+                  ONLY these, never a palette value or a hex code.
+
+   See index.html for every token rendered, and differences.md for where
+   the prototypes don't match yet.
+   ===================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------
+     1. Palette
+     --------------------------------------------------------------- */
+
+  /* Brand
+     --brand       Identity colour: the ezPay brand bar, active workspace and nav item, total banner.
+                   Not for buttons or links.
+     --brand-dark  Selection accent in navigation: the selected tab's label and underline.
+     --action      Primary actions: the fill of primary buttons and the outline of secondary ones.
+     --danger      Destructive actions (Reject). Text and outline only. */
+  --brand: #26a69a;
+  --brand-dark: #00897b;
+  --action: #0b8e76;
+  --danger: #d7260f;
+
+  /* Teal: accents, numbering and the AI checker */
+  --teal-900: #042f2e; --teal-800: #115e59; --teal-700: #0f766e; --teal-600: #0d9488;
+  --teal-500: #14b8a6; --teal-300: #5eead4; --teal-200: #99f6e4; --teal-100: #ccfbf1; --teal-50: #f0fdfa;
+
+  /* Slate: text, borders, surfaces */
+  --slate-900: #0f172a; --slate-800: #1e293b; --slate-700: #334155; --slate-600: #475569;
+  --slate-500: #64748b; --slate-400: #94a3b8; --slate-300: #cbd5e1; --slate-200: #e2e8f0;
+  --slate-100: #f1f5f9; --slate-50: #f8fafc;
+
+  /* Status */
+  --amber-900: #78350f; --amber-800: #92400e; --amber-700: #b45309; --amber-500: #f59e0b;
+  --amber-300: #fcd34d; --amber-200: #fde68a; --amber-100: #fef3c7; --amber-50: #fffbeb;
+  --red-800: #991b1b; --red-700: #b91c1c; --red-600: #dc2626; --red-200: #fecaca;
+  --red-100: #fee2e2; --red-50: #fef2f2;
+  --green-800: #065f46; --green-500: #10b981; --green-400: #34d399; --green-100: #d1fae5; --green-50: #ecfdf5;
+  --purple-800: #6b21a8; --purple-100: #f3e8ff;
+
+  /* Sidebar (from the d-Side menu component in Figma) */
+  --nav-border: #cdd5de; --nav-text: #0e1114; --nav-section: #8fa0af; --nav-active-bg: #e0f0ef;
+
+  /* Neutrals with no slate equivalent */
+  --white: #ffffff;
+  --doc-grey: #525659;   /* PDF-viewer canvas; nothing in slate is close (ΔE 11 to slate-600) */
+
+  /* ---------------------------------------------------------------
+     2. Semantic aliases: components use only these
+     --------------------------------------------------------------- */
+
+  /* Text */
+  --text: var(--slate-800);                 /* body copy and values */
+  --text-strong: var(--slate-900);          /* emphasised values, dialog titles, amounts */
+  --text-heading: var(--nav-text);          /* page title (was #000; ΔE 5.4) */
+  --text-secondary: var(--slate-700);       /* section titles, secondary labels */
+  --text-muted: var(--slate-500);           /* field labels, meta, hints */
+  --text-subtle: var(--slate-400);          /* placeholders, disabled text, list numbers */
+  --text-inverse: var(--white);             /* on dark or coloured fills */
+  --text-on-brand: var(--white);
+  --text-on-brand-muted: var(--teal-200);
+  --text-link: var(--teal-600);
+  --text-link-hover: var(--teal-700);
+
+  /* Surfaces */
+  --surface: var(--white);                  /* page, cards, inputs */
+  --surface-subtle: var(--slate-50);        /* card headers, file rows, read-only boxes */
+  --surface-muted: var(--slate-100);        /* chips, doc tab, hover on neutral controls */
+  --surface-selected: var(--teal-50);       /* selected file, open line item header */
+  --surface-inverse: var(--slate-800);      /* toast */
+  --surface-brand: var(--brand);            /* brand bar, total banner */
+
+  /* Borders */
+  --border: var(--slate-200);               /* cards, dividers */
+  --border-subtle: var(--slate-100);        /* rules inside cards */
+  --border-strong: var(--slate-300);        /* inputs, dashed drop areas */
+  --border-hover: var(--slate-400);         /* hovered input */
+  --border-accent: var(--teal-300);         /* hovered row, open line item */
+  --border-accent-subtle: var(--teal-200);  /* divider inside an open line item */
+  --border-selected: var(--teal-500);       /* selected file, focused input */
+  --border-on-brand: var(--teal-700);       /* divider inside the total banner */
+
+  /* Focus */
+  --focus-ring: var(--teal-500);
+
+  /* Actions */
+  --action-primary: var(--action);
+  --action-primary-hover: var(--teal-700);  /* was #087a65; same lightness, ΔE 8.6 */
+  --action-primary-text: var(--white);
+  --action-secondary-hover-bg: var(--teal-50);
+  --action-danger: var(--danger);
+  --action-danger-hover-bg: var(--red-50);
+  --action-disabled-bg: var(--slate-100);
+  --action-disabled-text: var(--slate-400);
+  --action-disabled-border: var(--slate-200);
+
+  /* Accent: numbering, category tags, the AI checker's teal */
+  --accent: var(--teal-700);
+  --accent-strong: var(--teal-800);
+  --accent-soft: var(--teal-100);
+  --accent-softer: var(--teal-50);
+  --accent-on-soft: var(--teal-700);
+
+  /* Status: always pair the colour with an icon or text */
+  --success-bg: var(--green-100);    --success-bg-subtle: var(--green-50);
+  --success-border: var(--green-400); --success-border-subtle: var(--green-100);
+  --success-text: var(--green-800);  --success-icon: var(--green-500);
+
+  --warning-bg: var(--amber-100);    --warning-bg-subtle: var(--amber-50);
+  --warning-border: var(--amber-300); --warning-border-subtle: var(--amber-200);
+  --warning-text: var(--amber-800);  --warning-text-strong: var(--amber-900);
+  --warning-icon: var(--amber-500);  --warning-emphasis: var(--amber-700);
+
+  --error-bg: var(--red-100);        --error-bg-subtle: var(--red-50);
+  --error-border: var(--red-600);    --error-border-subtle: var(--red-200);
+  --error-text: var(--red-800);      --error-text-soft: var(--red-700);
+  --error-icon: var(--red-600);
+
+  --ai-bg: var(--purple-100);        --ai-text: var(--purple-800);
+
+  --neutral-bg: var(--slate-100);    --neutral-text: var(--slate-600);
+
+  /* Sidebar */
+  --sidebar-bg: var(--white);
+  --sidebar-border: var(--nav-border);
+  --sidebar-text: var(--nav-text);
+  --sidebar-section-text: var(--nav-section);
+  --sidebar-hover-bg: var(--slate-50);
+  --sidebar-active-bg: var(--nav-active-bg);
+  --sidebar-active-text: var(--brand);
+  --sidebar-switch-bg: var(--slate-100);       /* was #eef1f4; ΔE 1.5 */
+  --sidebar-switch-inactive: var(--slate-400); /* was rgba(97,108,118,.49) */
+  --sidebar-brand-chip-bg: var(--slate-50);    /* was #f5f5f5; ΔE 2.0 */
+  --sidebar-user-name: var(--nav-text);        /* was #09090b; ΔE 2.8 */
+  --sidebar-user-meta: var(--slate-500);       /* was #71717a; same lightness, ΔE 9.8 */
+  --tab-selected: var(--brand-dark);
+
+  /* Document viewer */
+  --doc-toolbar-bg: var(--slate-700);          /* was #2b3648; ΔE 4.9 */
+  --doc-toolbar-text: var(--slate-300);
+  --doc-canvas-bg: var(--doc-grey);
+
+  /* Overlay */
+  --backdrop: color-mix(in srgb, var(--slate-900) 40%, transparent);
+
+  /* ---------------------------------------------------------------
+     Type
+     --------------------------------------------------------------- */
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --font-size-2xs: 10px;  --line-height-2xs: 14px;  /* micro badges: file type, AI tag */
+  --font-size-xs: 11px;   --line-height-xs: 16px;   /* meta, badges, sub-lines */
+  --font-size-sm: 12px;   --line-height-sm: 16px;   /* body (the base size) */
+  --font-size-md: 13px;   --line-height-md: 18px;   /* section titles, dialog body, toast */
+  --font-size-lg: 14px;   --line-height-lg: 20px;   /* sidebar, tabs, line item titles */
+  --font-size-xl: 16px;   --line-height-xl: 22px;   /* dialog titles, total amount */
+  --font-size-2xl: 20px;  --line-height-2xl: 28px;  /* banner amount */
+  --font-size-display: 30px; --line-height-display: 36px; /* page title */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---------------------------------------------------------------
+     Spacing: 4px base. No 10px step: gaps and control padding use 8px,
+     and row heights come from the size tokens below.
+     Figma paddings like 9, 11, 13 and 17px are a space step plus a 1px
+     border; use the step and let the border add the pixel.
+     --------------------------------------------------------------- */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* Sizes */
+  --size-control-sm: 28px;  /* compact selects, e.g. Apply template */
+  --size-control: 32px;     /* inputs and selects */
+  --size-header: 38px;      /* card and item headers */
+  --size-row: 40px;         /* sidebar links, tabs */
+  --size-sidebar: 260px;
+  --size-sidebar-collapsed: 64px;
+
+  /* ---------------------------------------------------------------
+     Radii
+     --------------------------------------------------------------- */
+  --radius-sm: 4px;     /* buttons, inputs, badges, file rows */
+  --radius-md: 6px;     /* total banner, toast */
+  --radius-lg: 8px;     /* cards, line items, dialogs */
+  --radius-full: 999px; /* dots, switch */
+
+  /* ---------------------------------------------------------------
+     Shadows
+     --------------------------------------------------------------- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, .05);         /* cards */
+  --shadow-row: 0 1px 1px rgba(0, 0, 0, .05);        /* line rows, total banner */
+  --shadow-pressed: 0 4px 2px rgba(0, 0, 0, .1);     /* active workspace option */
+  --shadow-sidebar: 6px 0 16px rgba(2, 17, 37, .04);
+  --shadow-dialog: 0 20px 25px -5px rgba(0, 0, 0, .15);
+  --shadow-sheet: 0 20px 25px -5px rgba(0, 0, 0, .1), 0 8px 10px -6px rgba(0, 0, 0, .1); /* document page */
+
+  /* Motion and layers */
+  --duration-fast: .15s;
+  --duration: .2s;
+  --z-actionbar: 4;
+  --z-sidebar: 5;
+  --z-toast: 20;
+}

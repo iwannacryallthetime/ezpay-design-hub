@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ezPay design system</title>
+<!--
+  Living style guide for tokens.css and components.css.
+  Open this file in a browser; it has no build step.
+  The page's own layout styles (prefixed .sg-) use semantic tokens too.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<style>
+  /* ---------- Style guide layout (not part of the design system) ---------- */
+  html, body { margin: 0; background: var(--surface); }
+  .sg { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100vh; }
+  .sg-toc { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: var(--space-6) var(--space-4); border-right: 1px solid var(--border); background: var(--surface-subtle); }
+  .sg-toc b { display: block; margin: var(--space-4) 0 var(--space-1); color: var(--text-muted); font-size: var(--font-size-xs); font-weight: var(--weight-semibold); }
+  .sg-toc b:first-of-type { margin-top: 0; }
+  .sg-toc a { display: block; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); color: var(--text); text-decoration: none; }
+  .sg-toc a:hover { background: var(--surface-muted); }
+  .sg-main { max-width: 1120px; padding: var(--space-8) var(--space-8) 120px; }
+  .sg-main > header h1 { margin: 0; color: var(--text-heading); font-size: var(--font-size-display); line-height: var(--line-height-display); font-weight: var(--weight-regular); }
+  .sg-lead { max-width: 72ch; margin: var(--space-2) 0 0; color: var(--text-muted); font-size: var(--font-size-md); line-height: 20px; }
+  .sg-rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); margin: var(--space-5) 0 0; padding: 0; list-style: none; }
+  .sg-rules li { padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface-subtle); line-height: 18px; }
+  .sg-rules b { display: block; margin-bottom: var(--space-1); color: var(--text-strong); }
+  h2.sg-h2 { margin: var(--space-12) 0 var(--space-1); padding-top: var(--space-4); border-top: 1px solid var(--border); color: var(--text-strong); font-size: 22px; line-height: 28px; font-weight: var(--weight-bold); scroll-margin-top: var(--space-4); }
+  h3.sg-h3 { margin: var(--space-8) 0 var(--space-1); color: var(--text-strong); font-size: var(--font-size-xl); line-height: var(--line-height-xl); scroll-margin-top: var(--space-4); }
+  .sg-note { max-width: 78ch; margin: 0 0 var(--space-3); color: var(--text-muted); font-size: var(--font-size-md); line-height: 20px; }
+  .sg-note code, .sg-code { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--text-secondary); background: var(--surface-muted); padding: 1px var(--space-1); border-radius: var(--radius-sm); }
+  .sg-demo { padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); overflow-x: auto; }
+  .sg-demo.is-tinted { background: var(--surface-subtle); }
+  /* States grid: one row per variant, one column per state */
+  .sg-states { display: grid; grid-template-columns: 130px repeat(5, minmax(110px, 1fr)); gap: var(--space-3) var(--space-4); align-items: center; min-width: 760px; }
+  .sg-states > button, .sg-states > span > button { justify-self: start; }
+  .sg-states.is-top { align-items: start; }
+  .sg-states.is-top .v { padding-top: 22px; }
+  .sg-states .h { color: var(--text-subtle); font-size: var(--font-size-xs); font-weight: var(--weight-semibold); }
+  .sg-states .v { color: var(--text-secondary); font-weight: var(--weight-semibold); }
+  .sg-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+  .sg-row + .sg-row { margin-top: var(--space-3); }
+  .sg-cap { display: block; margin-top: var(--space-1); color: var(--text-subtle); font-size: var(--font-size-xs); }
+  .sg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); }
+  .sg-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--space-4); align-items: start; }
+  /* Tokens */
+  .sg-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--space-2); }
+  .sg-swatch { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; font-size: var(--font-size-xs); }
+  .sg-swatch i { display: block; height: 44px; border-bottom: 1px solid var(--border); }
+  .sg-swatch span { display: block; padding: var(--space-1) var(--space-2); }
+  .sg-swatch code { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--font-size-2xs); }
+  .sg-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: var(--space-3); }
+  .sg-role { display: flex; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-lg); line-height: 18px; }
+  .sg-role i { flex: none; width: 40px; height: 40px; border-radius: var(--radius-sm); }
+  .sg-role b { display: block; color: var(--text-strong); font-family: var(--font-mono); font-size: var(--font-size-xs); }
+  .sg-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+  .sg-table th { padding: var(--space-2); border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: var(--weight-medium); text-align: left; white-space: nowrap; }
+  .sg-table td { padding: var(--space-1-5) var(--space-2); border-top: 1px solid var(--border-subtle); vertical-align: middle; }
+  .sg-table code { font-family: var(--font-mono); font-size: var(--font-size-xs); }
+  .sg-dot { display: inline-block; width: 18px; height: 18px; margin-right: var(--space-1-5); border: 1px solid var(--border); border-radius: var(--radius-sm); vertical-align: middle; }
+  .sg-table-wrap { overflow-x: auto; }
+  .sg-space { display: flex; align-items: center; gap: var(--space-3); }
+  .sg-space i { display: block; height: 12px; background: var(--border-accent); border-radius: 2px; }
+  .sg-boxes { display: flex; flex-wrap: wrap; gap: var(--space-5); }
+  .sg-box { display: flex; align-items: center; justify-content: center; width: 120px; height: 72px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font-size: var(--font-size-xs); text-align: center; }
+  /* Containers for the shell components */
+  .sg-sidebar { height: 560px; border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; display: inline-flex; }
+  .sg-doc { height: 360px; }
+  .sg-doc .doc-viewer { height: 100%; }
+  .sg-doc .doc-viewer-canvas { flex: 1; }
+  .sg-demo dialog.dialog { position: static; margin: 0; }
+  .sg-receipt { width: 300px; font-size: 10px; line-height: 14px; color: var(--text-secondary); }
+  .sg-receipt b { display: block; color: var(--text-strong); font-size: 14px; line-height: 20px; margin-bottom: var(--space-2); }
+  .sg-receipt div { display: flex; justify-content: space-between; padding: 2px 0; }
+  @media (max-width: 900px) {
+    .sg { grid-template-columns: 1fr; }
+    .sg-toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    .sg-main { padding: var(--space-5) var(--space-4) 80px; }
+  }
+</style>
+</head>
+<body class="ez">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></symbol>
+    <symbol id="i-glasses" viewBox="0 0 24 24"><circle cx="6.5" cy="14.5" r="3.5"/><circle cx="17.5" cy="14.5" r="3.5"/><path d="M10 14.5h4M3 14.5 5 7h2M21 14.5 19 7h-2"/></symbol>
+    <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3v18l2.5-1.5L10 21l2-1.5 2 1.5 2.5-1.5L19 21V3l-2.5 1.5L14 3l-2 1.5L10 3 7.5 4.5z"/><path d="M8.5 9h7M8.5 13h7"/></symbol>
+    <symbol id="i-stamp" viewBox="0 0 24 24"><path d="M5 21h14M6 17h12v-3a2 2 0 0 0-2-2h-2l-.5-3.5a3 3 0 1 0-3 0L10 12H8a2 2 0 0 0-2 2z"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></symbol>
+    <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.5-1.5 1.7-2 3-2s2.5.5 3 2M14.5 10H18M14.5 13.5H18"/></symbol>
+    <symbol id="i-chev-up" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></symbol>
+    <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.8-5"/></symbol>
+    <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol>
+    <symbol id="i-x-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></symbol>
+    <symbol id="i-minus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12h7"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 20h20z"/><path d="M12 10v4.5M12 17.2h.01"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M2 13v2M22 13v2"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.5 3.2 8.2 7.5 9.5 4.3-1.3 7.5-5 7.5-9.5V6z"/><path d="m8.8 12 2.2 2.2 4.2-4.4"/></symbol>
+    <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 9h6M9 13h6"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 12h6M9 16h4"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 8.5l5-5 5 5M5 20h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><path d="m20 11.5-7.8 7.8a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.5"/><path d="M20 4v4.5h-4.5"/></symbol>
+  </defs>
+</svg>
+
+<div class="sg">
+  <nav class="sg-toc" aria-label="Style guide contents">
+    <b>Start</b>
+    <a href="#principles">Principles</a>
+    <b>Tokens</b>
+    <a href="#brand">Brand roles</a>
+    <a href="#palette">Palette</a>
+    <a href="#semantic">Semantic aliases</a>
+    <a href="#type">Type</a>
+    <a href="#spacing">Spacing and sizes</a>
+    <a href="#radii">Radii and shadows</a>
+    <b>Components</b>
+    <a href="#buttons">Buttons</a>
+    <a href="#badges">Badges and status tags</a>
+    <a href="#forms">Form fields</a>
+    <a href="#cards">Cards and section headers</a>
+    <a href="#nav">Navigation</a>
+    <a href="#files">Files and viewer</a>
+    <a href="#dialogs">Dialogs and toasts</a>
+    <b>Patterns</b>
+    <a href="#ai">AI checker patterns</a>
+    <b>Prototypes</b>
+    <a href="differences.md">Differences (old → new)</a>
+  </nav>
+
+  <main class="sg-main">
+    <header id="principles">
+      <h1>ezPay design system</h1>
+      <p class="sg-lead">Tokens and components shared by the AI checker and the requestor form. Link <span class="sg-code">tokens.css</span> and <span class="sg-code">components.css</span>, put <span class="sg-code">class="ez"</span> on the page, and use the classes below. <a href="differences.md">differences.md</a> lists where the prototypes don't match yet.</p>
+      <ul class="sg-rules">
+        <li><b>Semantic tokens only</b>Components use aliases like <span class="sg-code">--text-muted</span>, never a palette step or hex code.</li>
+        <li><b>Sentence case</b>No all-caps or Title Case copy. Acronyms (GST, SGD, AOR, PDF) stay as they are.</li>
+        <li><b>Colour plus a signal</b>Every status pairs its colour with an icon or words, so it reads without colour.</li>
+        <li><b>Real buttons, visible focus</b>Controls are <span class="sg-code">&lt;button&gt;</span>s with a teal focus ring.</li>
+      </ul>
+    </header>
+
+    <!-- =============================== TOKENS =============================== -->
+    <h2 class="sg-h2" id="brand">Brand roles</h2>
+    <p class="sg-note">Four palette colours carry a fixed job. Components reach them through semantic aliases.</p>
+    <div class="sg-roles">
+      <div class="sg-role"><i style="background:var(--brand)"></i><span><b>--brand</b>Identity colour: the brand bar, active workspace and nav item, total banner. Not for buttons or links.</span></div>
+      <div class="sg-role"><i style="background:var(--brand-dark)"></i><span><b>--brand-dark</b>Selection accent in navigation: the selected tab's label and underline.</span></div>
+      <div class="sg-role"><i style="background:var(--action)"></i><span><b>--action</b>Primary actions: the fill of primary buttons and the outline of secondary ones.</span></div>
+      <div class="sg-role"><i style="background:var(--danger)"></i><span><b>--danger</b>Destructive decisions (Reject, Discard). Text and outline only.</span></div>
+    </div>
+
+    <h2 class="sg-h2" id="palette">Palette</h2>
+    <p class="sg-note">Raw colours. Only <span class="sg-code">tokens.css</span> references these; if you need one in a component, add a semantic alias for it.</p>
+    <div id="palette-groups"></div>
+
+    <h2 class="sg-h2" id="semantic">Semantic aliases</h2>
+    <p class="sg-note">What components use. The swatch shows the live value from <span class="sg-code">tokens.css</span>.</p>
+    <div class="sg-table-wrap"><table class="sg-table" id="semantic-table">
+      <thead><tr><th>Token</th><th>Points to</th><th>Use for</th></tr></thead><tbody></tbody>
+    </table></div>
+
+    <h2 class="sg-h2" id="type">Type</h2>
+    <p class="sg-note">Inter, with a system fallback. Body copy is <span class="sg-code">sm</span> (12px). Weights: 400 regular, 500 medium, 600 semibold, 700 bold. Amounts in boxes and inputs use the mono stack.</p>
+    <div class="sg-demo" id="type-scale"></div>
+
+    <h2 class="sg-h2" id="spacing">Spacing and sizes</h2>
+    <p class="sg-note">4px base. There's no 10px step: gaps and control padding use 8px, and row heights come from size tokens. Figma paddings like 9, 11 or 13px are a step plus a 1px border.</p>
+    <div class="sg-two">
+      <div class="sg-demo" id="space-scale"></div>
+      <div class="sg-demo">
+        <table class="sg-table"><thead><tr><th>Size</th><th>Value</th><th>Use for</th></tr></thead><tbody>
+          <tr><td><code>--size-control-sm</code></td><td>28px</td><td>Compact selects (Apply template)</td></tr>
+          <tr><td><code>--size-control</code></td><td>32px</td><td>Inputs, selects, buttons</td></tr>
+          <tr><td><code>--size-header</code></td><td>38px</td><td>Card and item headers</td></tr>
+          <tr><td><code>--size-row</code></td><td>40px</td><td>Sidebar links, tabs</td></tr>
+          <tr><td><code>--size-sidebar</code></td><td>260px / 64px</td><td>Sidebar open / collapsed</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <h2 class="sg-h2" id="radii">Radii and shadows</h2>
+    <div class="sg-demo is-tinted">
+      <div class="sg-boxes">
+        <div><div class="sg-box" style="border-radius:var(--radius-sm)">--radius-sm<br>4px</div><span class="sg-cap">Buttons, inputs, badges</span></div>
+        <div><div class="sg-box" style="border-radius:var(--radius-md)">--radius-md<br>6px</div><span class="sg-cap">Total banner, toast</span></div>
+        <div><div class="sg-box" style="border-radius:var(--radius-lg)">--radius-lg<br>8px</div><span class="sg-cap">Cards, line items, dialogs</span></div>
+        <div><div class="sg-box" style="border-radius:var(--radius-full);width:72px">full</div><span class="sg-cap">Dots, switch</span></div>
+      </div>
+      <div class="sg-boxes" style="margin-top:var(--space-6)">
+        <div><div class="sg-box" style="border-radius:var(--radius-lg);box-shadow:var(--shadow-xs)">--shadow-xs</div><span class="sg-cap">Cards</span></div>
+        <div><div class="sg-box" style="border-radius:var(--radius-lg);box-shadow:var(--shadow-row)">--shadow-row</div><span class="sg-cap">Line rows, banner</span></div>
+        <div><div class="sg-box" style="border-radius:var(--radius-sm);box-shadow:var(--shadow-pressed)">--shadow-pressed</div><span class="sg-cap">Active workspace</span></div>
+        <div><div class="sg-box" style="box-shadow:var(--shadow-sidebar)">--shadow-sidebar</div><span class="sg-cap">Sidebar edge</span></div>
+        <div><div class="sg-box" style="border-radius:var(--radius-lg);box-shadow:var(--shadow-dialog)">--shadow-dialog</div><span class="sg-cap">Dialogs</span></div>
+        <div><div class="sg-box" style="box-shadow:var(--shadow-sheet)">--shadow-sheet</div><span class="sg-cap">Document page</span></div>
+      </div>
+    </div>
+
+    <!-- ============================= COMPONENTS ============================= -->
+    <h2 class="sg-h2" id="buttons">Buttons</h2>
+    <p class="sg-note">One <b>primary</b> per screen, for the main decision. <b>Secondary</b> for the other actions beside it. <b>Danger</b> for destructive or negative decisions; ask for confirmation. <b>Plain</b> for low-emphasis actions in dialogs and footers. <b>Accent</b> for compact actions inside AI checker panels. Labels say what happens: "Submit claim", not "OK".</p>
+    <div class="sg-demo">
+      <div class="sg-states" id="button-states"></div>
+    </div>
+    <div class="sg-demo" style="margin-top:var(--space-3)">
+      <div class="sg-states">
+        <span></span><span class="h">Default</span><span class="h">Hover</span><span class="h">Focus</span><span class="h">Disabled</span><span class="h">Size</span>
+        <span class="v">Link<span class="sg-cap">Inline actions: Edit, choose files</span></span>
+        <button class="btn-link" type="button">Edit</button><button class="btn-link is-hover" type="button">Edit</button><button class="btn-link is-focus" type="button">Edit</button><button class="btn-link" type="button" disabled>Edit</button><span></span>
+        <span class="v">Link, danger<span class="sg-cap">Remove a row</span></span>
+        <button class="btn-link btn-link-danger" type="button"><svg class="i"><use href="#i-trash"/></svg>Remove</button><button class="btn-link btn-link-danger is-hover" type="button"><svg class="i"><use href="#i-trash"/></svg>Remove</button><button class="btn-link btn-link-danger is-focus" type="button"><svg class="i"><use href="#i-trash"/></svg>Remove</button><button class="btn-link btn-link-danger" type="button" disabled><svg class="i"><use href="#i-trash"/></svg>Remove</button><span></span>
+        <span class="v">Icon<span class="sg-cap">Always add an aria-label</span></span>
+        <span><button class="btn-icon" type="button" aria-label="Collapse"><svg class="i"><use href="#i-chev-up"/></svg></button></span><span><button class="btn-icon is-hover" type="button" aria-label="Collapse"><svg class="i"><use href="#i-chev-up"/></svg></button></span><span><button class="btn-icon is-focus" type="button" aria-label="Collapse"><svg class="i"><use href="#i-chev-up"/></svg></button></span><span><button class="btn-icon" type="button" aria-label="Collapse" disabled><svg class="i"><use href="#i-chev-up"/></svg></button></span><span></span>
+        <span class="v">Icon, danger<span class="sg-cap">Remove a file</span></span>
+        <span><button class="btn-icon btn-icon-danger" type="button" aria-label="Remove file"><svg class="i"><use href="#i-x"/></svg></button></span><span><button class="btn-icon btn-icon-danger is-hover" type="button" aria-label="Remove file"><svg class="i"><use href="#i-x"/></svg></button></span><span><button class="btn-icon btn-icon-danger is-focus" type="button" aria-label="Remove file"><svg class="i"><use href="#i-x"/></svg></button></span><span><button class="btn-icon btn-icon-danger" type="button" aria-label="Remove file" disabled><svg class="i"><use href="#i-x"/></svg></button></span><span></span>
+        <span class="v">Add<span class="sg-cap">Append to a list</span></span>
+        <span><button class="btn-add" type="button"><svg class="i"><use href="#i-plus"/></svg>Add line item</button></span><span><button class="btn-add is-hover" type="button"><svg class="i"><use href="#i-plus"/></svg>Add line item</button></span><span><button class="btn-add is-focus" type="button"><svg class="i"><use href="#i-plus"/></svg>Add line item</button></span><span><button class="btn-add" type="button" disabled><svg class="i"><use href="#i-plus"/></svg>Add line item</button></span><span></span>
+      </div>
+    </div>
+
+    <h2 class="sg-h2" id="badges">Badges and status tags</h2>
+    <p class="sg-note">Colour is never the only signal: every status has an icon and words. Use a <b>badge</b> for a status on a row or field, a <b>tag</b> (bordered) for the headline status of an open item, and <b>status</b> text under a title.</p>
+    <div class="sg-demo">
+      <div class="sg-row">
+        <span class="badge badge-success"><svg class="i"><use href="#i-check-circle"/></svg>Pass</span>
+        <span class="badge badge-error"><svg class="i"><use href="#i-x-circle"/></svg>Fail</span>
+        <span class="badge badge-warning"><svg class="i"><use href="#i-alert"/></svg>Needs review</span>
+        <span class="badge badge-neutral"><svg class="i"><use href="#i-minus-circle"/></svg>Not applicable</span>
+        <span class="badge badge-ai"><svg class="i"><use href="#i-bot"/></svg>AI-filled, check</span>
+        <span class="badge badge-success"><svg class="i"><use href="#i-check"/></svg>Resolved</span>
+        <span class="badge badge-accent">Accommodation</span>
+      </div>
+      <span class="sg-cap">Badges: success, error, warning, neutral, AI, accent (category tag on an item header)</span>
+      <h3 class="sg-h3" style="margin-top:var(--space-5)">Line statuses</h3>
+      <p class="sg-note">Shown on each collapsed line item.</p>
+      <div class="sg-row">
+        <span class="badge badge-warning"><svg class="i"><use href="#i-alert"/></svg>2 fields missing</span>
+        <span class="badge badge-error"><svg class="i"><use href="#i-x-circle"/></svg>2 fields missing</span>
+        <span class="badge badge-ai"><svg class="i"><use href="#i-bot"/></svg>AI-filled, check</span>
+        <span class="badge badge-success"><svg class="i"><use href="#i-check-circle"/></svg>Complete</span>
+      </div>
+      <span class="sg-cap">Missing before you've tried to continue (warning) and after (error); filled by AI and not yet edited; complete</span>
+      <div class="sg-row" style="margin-top:var(--space-5)">
+        <span class="tag tag-warning"><svg class="i"><use href="#i-alert"/></svg>Review required</span>
+        <span class="tag tag-success"><svg class="i"><use href="#i-check-circle"/></svg>Ready to verify</span>
+        <span class="status status-success"><svg class="i"><use href="#i-check-circle"/></svg>AI checks passed</span>
+        <span class="status status-warning"><svg class="i"><use href="#i-alert"/></svg>2 issues to review</span>
+        <span class="status status-error"><svg class="i"><use href="#i-x-circle"/></svg>No receipt</span>
+      </div>
+      <span class="sg-cap">Tags (item headers) and inline status text</span>
+      <div class="sg-row" style="margin-top:var(--space-5)">
+        <span class="num-badge">01</span>
+        <span class="num-badge num-badge-solid">2</span>
+        <span class="chip">Airfare</span>
+        <span class="filetype">PDF</span>
+        <span class="filetype filetype-solid">PDF</span>
+        <span class="badge badge-error badge-xs"><svg class="i"><use href="#i-x-circle"/></svg>2 failed</span>
+        <span class="badge badge-ai badge-xs"><svg class="i"><use href="#i-bot"/></svg>AI</span>
+        <span class="summary-pill">Total: SGD 1,240.50</span>
+      </div>
+      <span class="sg-cap">Number badges (section, line), chip (category), file type, small count and AI tag, summary pill</span>
+    </div>
+
+    <h2 class="sg-h2" id="forms">Form fields</h2>
+    <p class="sg-note">Label above the control; optional fields say "(opt.)" in the label. Errors appear under the field once someone tries to continue, and say what to do: "Choose a cost centre." Inputs are 32px tall.</p>
+    <div class="sg-demo">
+      <div class="sg-states is-top">
+        <span></span><span class="h">Default</span><span class="h">Hover</span><span class="h">Focus</span><span class="h">Disabled</span><span class="h">Error</span>
+        <span class="v">Text</span>
+        <div class="field"><label class="field-label" for="t1">Pay to</label><input class="input" id="t1" placeholder="e.g. Michael Scott"></div>
+        <div class="field"><label class="field-label" for="t2">Pay to</label><input class="input is-hover" id="t2" value="Michael Scott"></div>
+        <div class="field"><label class="field-label" for="t3">Pay to</label><input class="input is-focus" id="t3" value="Michael Sc"></div>
+        <div class="field"><label class="field-label" for="t4">Pay to</label><input class="input" id="t4" value="Michael Scott" disabled></div>
+        <div class="field"><label class="field-label" for="t5">Pay to</label><input class="input" id="t5" aria-invalid="true" aria-describedby="t5e"><span class="field-error" id="t5e"><svg class="i"><use href="#i-alert"/></svg>Enter who this claim pays.</span></div>
+        <span class="v">Select</span>
+        <div class="field"><label class="field-label" for="s1">Cost centre</label><select class="input" id="s1"><option>Select…</option><option>FPP</option></select></div>
+        <div class="field"><label class="field-label" for="s2">Cost centre</label><select class="input is-hover" id="s2"><option>FPP</option></select></div>
+        <div class="field"><label class="field-label" for="s3">Cost centre</label><select class="input is-focus" id="s3"><option>FPP</option></select></div>
+        <div class="field"><label class="field-label" for="s4">Cost centre</label><select class="input" id="s4" disabled><option>FPP</option></select></div>
+        <div class="field"><label class="field-label" for="s5">Cost centre</label><select class="input" id="s5" aria-invalid="true"><option>Select…</option></select><span class="field-error"><svg class="i"><use href="#i-alert"/></svg>Choose a cost centre.</span></div>
+        <span class="v">Amount</span>
+        <div class="field"><span class="field-label">Amount excl. GST</span><div class="input-affix"><span class="affix">SGD</span><input class="input" aria-label="Amount excl. GST" placeholder="0.00"></div></div>
+        <div class="field"><span class="field-label">Amount excl. GST</span><div class="input-affix is-hover"><span class="affix">SGD</span><input class="input" aria-label="Amount" value="450.00"></div></div>
+        <div class="field"><span class="field-label">Amount excl. GST</span><div class="input-affix is-focus"><span class="affix">SGD</span><input class="input" aria-label="Amount" value="450.0"></div></div>
+        <div class="field"><span class="field-label">Amount excl. GST</span><div class="input-affix" style="background:var(--surface-muted)"><span class="affix">SGD</span><input class="input" aria-label="Amount" value="450.00" disabled></div></div>
+        <div class="field"><span class="field-label">Amount excl. GST</span><div class="input-affix is-invalid"><span class="affix">SGD</span><input class="input" aria-label="Amount" value="abc" aria-invalid="true"></div><span class="field-error"><svg class="i"><use href="#i-alert"/></svg>Enter an amount using numbers only.</span></div>
+      </div>
+    </div>
+
+    <div class="sg-two" style="margin-top:var(--space-4)">
+      <div>
+        <h3 class="sg-h3">Read-only field and field grid</h3>
+        <p class="sg-note">Review screens show values under labels. <span class="sg-code">.field-grid</span> lines inputs up across a row even when a label wraps.</p>
+        <div class="card"><div class="card-header"><h3 class="section-title"><span class="num-badge">02</span>Basic &amp; payment information</h3><button class="btn-link" type="button">Edit</button></div>
+          <div class="field-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+            <div class="field"><span class="field-label">Pay to (vendor/employee)</span><span class="field-value">Michael Scott</span><span></span></div>
+            <div class="field"><span class="field-label">Claim type</span><span class="field-value">Marketing Q3 Regional Conference</span><span></span></div>
+            <div class="field"><span class="field-label">Advance number</span><span class="field-value is-empty">Not given</span><span></span></div>
+            <div class="field"><span class="field-label">Invoice/receipt date</span><span class="field-value">28 Sept 2025</span><span></span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 class="sg-h3">Search and filter chips</h3>
+        <p class="sg-note">From four items, a search box and filter chips narrow a long list. Chips show counts.</p>
+        <div class="sg-demo">
+          <div class="input-search" style="max-width:280px"><svg class="i"><use href="#i-search"/></svg><input class="input" type="search" aria-label="Search line items" placeholder="Search description, invoice or coding"></div>
+          <div class="filter-chips" style="margin-top:var(--space-3)">
+            <button class="filter-chip" type="button" aria-pressed="true">All <span class="count">40</span></button>
+            <button class="filter-chip is-hover" type="button" aria-pressed="false">Needs attention <span class="count">10</span></button>
+            <button class="filter-chip is-focus" type="button" aria-pressed="false">Complete <span class="count">30</span></button>
+            <button class="filter-chip" type="button" aria-pressed="false" disabled>Archived <span class="count">0</span></button>
+          </div>
+          <span class="sg-cap">Selected, hover, focus, disabled</span>
+        </div>
+        <h3 class="sg-h3">Switch</h3>
+        <p class="sg-note">Turns a setting on or off right away, with no Save. Use <span class="sg-code">role="switch"</span>.</p>
+        <div class="sg-demo sg-row">
+          <button class="switch" type="button" role="switch" aria-checked="true"><svg class="i"><use href="#i-bot"/></svg>AI extraction<span class="track"></span></button>
+          <button class="switch" type="button" role="switch" aria-checked="false"><svg class="i"><use href="#i-bot"/></svg>AI extraction<span class="track"></span></button>
+          <button class="switch is-hover" type="button" role="switch" aria-checked="false">Hover<span class="track"></span></button>
+          <button class="switch is-focus" type="button" role="switch" aria-checked="true">Focus<span class="track"></span></button>
+          <button class="switch" type="button" role="switch" aria-checked="false" disabled>Disabled<span class="track"></span></button>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sg-h3">Drop zone</h3>
+    <p class="sg-note">For attaching files. Offer a "choose files" button inside it too, since not everyone can drag.</p>
+    <div class="sg-grid">
+      <div><div class="dropzone"><svg class="i"><use href="#i-upload"/></svg><span>Receipts and invoices. Drag files here or <button class="btn-link" type="button">choose files</button></span></div><span class="sg-cap">Default</span></div>
+      <div><div class="dropzone is-over"><svg class="i"><use href="#i-upload"/></svg><span>Drop to attach</span></div><span class="sg-cap">Dragging over</span></div>
+      <div><div class="dropzone is-invalid"><svg class="i"><use href="#i-upload"/></svg><span>Receipts and invoices. Drag files here or <button class="btn-link" type="button">choose files</button></span></div><span class="field-error" style="margin-top:var(--space-1)"><svg class="i"><use href="#i-alert"/></svg>Attach at least one proof of purchase.</span></div>
+    </div>
+
+    <h2 class="sg-h2" id="cards">Cards and section headers</h2>
+    <p class="sg-note">A <b>card</b> groups one section of a form; its header carries a numbered section title and, on the right, meta text or one link. Line items use a compact <b>item row</b> when closed and an <b>item card</b> when open, one open at a time.</p>
+    <div class="sg-two">
+      <div class="card">
+        <div class="card-header"><h3 class="section-title"><span class="num-badge">03</span>Workflow officers</h3><span class="card-meta">Who checks and approves this claim</span></div>
+        <div class="field-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+          <div class="field"><label class="field-label" for="w1">Supporting officer (opt.)</label><select class="input" id="w1"><option>None</option></select><span></span></div>
+          <div class="field"><label class="field-label" for="w2">Approving officer</label><select class="input" id="w2"><option>Fenty Wap</option></select><span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="list-header"><h3 class="section-title"><span class="num-badge">04</span>Line items (40)</h3><span class="summary-pill">Total: SGD 10,740.40</span></div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-2);margin-top:var(--space-3)">
+          <button class="item-row" type="button"><span class="num">1</span><span class="main"><span class="top"><span class="chip">Airfare</span><span class="title">Return airfare, Singapore to Tokyo (SQ638)</span></span><span class="sub">SQ638-ETKT-0021 · 28 Sep 2025 · CC FPP · GL 720100</span></span><span class="badge badge-success"><svg class="i"><use href="#i-check-circle"/></svg>Complete</span><span class="amount">SGD 490.50</span><svg class="i chev"><use href="#i-chev-down"/></svg></button>
+          <button class="item-row is-hover" type="button"><span class="num">2</span><span class="main"><span class="top"><span class="chip">Meals</span><span class="title">Team dinner, Shibuya</span></span><span class="sub">R-55102 · 2 Oct 2025</span></span><span class="badge badge-warning"><svg class="i"><use href="#i-alert"/></svg>2 fields missing</span><span class="amount">SGD 202.74</span><svg class="i chev"><use href="#i-chev-down"/></svg></button>
+          <button class="item-row is-focus" type="button"><span class="num">3</span><span class="main"><span class="top"><span class="chip">Accommodation</span><span class="title">Hôtel 34B Astotel, Paris</span></span><span class="sub">INV-34B-0156 · 21 Jul 2026</span></span><span class="badge badge-ai"><svg class="i"><use href="#i-bot"/></svg>AI-filled, check</span><span class="amount">EUR 1,130.00</span><svg class="i chev"><use href="#i-chev-down"/></svg></button>
+        </div>
+        <span class="sg-cap">Item rows: default, hover, focus</span>
+      </div>
+    </div>
+
+    <div class="sg-two" style="margin-top:var(--space-4)">
+      <section class="item-card" aria-label="Line item 1">
+        <div class="item-header">
+          <div class="group"><span class="num-badge num-badge-solid">1</span><h4 class="title">Return airfare, Singapore to Tokyo</h4><span class="badge badge-accent">Airfare</span></div>
+          <div class="group"><button class="btn-link" type="button">Edit line item</button><button class="btn-icon" type="button" aria-label="Collapse line item 1"><svg class="i"><use href="#i-chev-up"/></svg></button></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);padding:var(--space-4)">
+          <div class="box"><div style="display:flex;justify-content:space-between;align-items:baseline"><span class="field-label">Total amount</span><b style="font-size:var(--font-size-xl);color:var(--text-strong)">SGD 490.50</b></div></div>
+          <dl class="box key-value" style="margin:0"><div><dt>Fund centre:</dt><dd>TRG/PT(Tech)</dd></div><div><dt>Cost centre:</dt><dd>FPP</dd></div><div><dt>GL account:</dt><dd>720100</dd></div></dl>
+        </div>
+        <div class="item-footer"><button class="btn btn-plain" type="button">Collapse</button><button class="btn btn-secondary" type="button">Next line item (2)<svg class="i"><use href="#i-chev-right"/></svg></button></div>
+      </section>
+      <div>
+        <div class="card">
+          <div class="card-header"><h3 class="section-title">Before you submit</h3><span class="card-meta">2 of 4 done</span></div>
+          <ul class="checklist">
+            <li><button class="checklist-item is-done" type="button"><svg class="i"><use href="#i-check-circle"/></svg><span><b>Proof of purchase</b><small>2 files attached</small></span></button></li>
+            <li><button class="checklist-item is-done is-hover" type="button"><svg class="i"><use href="#i-check-circle"/></svg><span><b>Basic &amp; payment information</b><small>Hover</small></span></button></li>
+            <li><button class="checklist-item" type="button"><svg class="i"><use href="#i-circle"/></svg><span><b>Line items</b><small>38 of 40 line items complete</small></span></button></li>
+          </ul>
+        </div>
+        <span class="sg-cap">Checklist: what's left before a step can be finished; each row jumps to its section</span>
+        <div class="card" style="margin-top:var(--space-4)"><div class="empty-state"><b style="display:block;color:var(--text)">Workflow</b>The approval workflow view isn't in this prototype yet.</div></div>
+        <span class="sg-cap">Empty state</span>
+      </div>
+    </div>
+
+    <h2 class="sg-h2" id="nav">Navigation</h2>
+    <p class="sg-note"><b>Tabs</b> switch between views of the same record. A <b>stepper</b> splits one task into ordered steps; you can always go back, and only go forward once earlier steps are complete. The <b>sidebar</b> is the app's main navigation. The <b>action bar</b> holds the screen's decisions and stays pinned to the bottom.</p>
+    <div class="sg-demo">
+      <div class="page-header" style="padding:0 0 var(--space-3)"><h1>DIP2025171622</h1><p>Page header: the record ID or task name, with an optional intro.</p></div>
+      <div class="tabs" role="tablist" aria-label="Claim views">
+        <button class="tab" role="tab" aria-selected="false" type="button">Details</button>
+        <button class="tab is-hover" role="tab" aria-selected="false" type="button">Workflow (hover)</button>
+        <button class="tab" role="tab" aria-selected="true" type="button">Details (AI-enabled)</button>
+        <button class="tab is-focus" role="tab" aria-selected="false" type="button">Focus</button>
+        <button class="tab" role="tab" aria-selected="false" type="button" disabled>Disabled</button>
+      </div>
+      <ol class="stepper" style="margin-top:var(--space-6)">
+        <li class="is-done"><button class="step is-done" type="button"><span class="dot"><svg class="i"><use href="#i-check"/></svg></span><span><b>Claim details</b><small>Done</small></span></button></li>
+        <li><button class="step" type="button" aria-current="step"><span class="dot">2</span><span><b>Workflow officers</b><small>Current step</small></span></button></li>
+        <li><button class="step is-hover" type="button"><span class="dot">3</span><span><b>Review and submit</b><small>Upcoming (hover)</small></span></button></li>
+      </ol>
+    </div>
+
+    <div class="sg-two" style="margin-top:var(--space-4);grid-template-columns:auto minmax(0,1fr)">
+      <div class="sg-sidebar">
+        <aside class="sidebar" aria-label="Main navigation">
+          <div class="sidebar-brand"><span class="word">ezPay</span><span class="chip">Carrot</span></div>
+          <div class="workspace-switch" role="group" aria-label="Workspace"><button class="workspace-option" type="button" aria-pressed="true">Carrot</button><button class="workspace-option" type="button" aria-pressed="false">Overt</button></div>
+          <nav class="nav">
+            <a class="nav-link" href="#nav"><svg class="i"><use href="#i-home"/></svg>Home</a>
+            <div class="nav-divider"></div>
+            <div class="nav-section">Manage</div>
+            <a class="nav-link" href="#nav" aria-current="page"><svg class="i"><use href="#i-glasses"/></svg>Checking tasks</a>
+            <div class="nav-divider"></div>
+            <div class="nav-section">Payment requests</div>
+            <a class="nav-link is-hover" href="#nav"><svg class="i"><use href="#i-plus-circle"/></svg>New claim (hover)</a>
+            <a class="nav-link is-focus" href="#nav"><svg class="i"><use href="#i-receipt"/></svg>My requests (focus)</a>
+            <a class="nav-link is-sub" href="#nav">Sub-item</a>
+            <div class="nav-divider"></div>
+            <div class="nav-user"><svg class="i" style="width:20px;height:20px"><use href="#i-id"/></svg><div><b>Minato</b><span>PN:000007</span></div></div>
+          </nav>
+          <button class="sidebar-collapse" type="button">Collapse sidebar<svg class="i"><use href="#i-chev-left"/></svg></button>
+        </aside>
+      </div>
+      <div>
+        <p class="sg-note">Sidebar states: active page (teal bar and tint), hover, focus. Labels here are sentence case; the prototypes still use Title Case ("Checking Tasks").</p>
+        <div class="action-bar" style="border:1px solid var(--border);border-radius:var(--radius-lg)">
+          <button class="btn btn-secondary" type="button">Cancel</button>
+          <div class="action-bar-group"><span class="action-bar-hint is-error">3 fields need attention</span><button class="btn btn-secondary" type="button">Back</button><button class="btn btn-primary" type="button">Next: review</button></div>
+        </div>
+        <span class="sg-cap">Action bar with an error hint</span>
+        <div class="action-bar" style="border:1px solid var(--border);border-radius:var(--radius-lg);margin-top:var(--space-3)">
+          <button class="btn btn-secondary" type="button">Go back</button>
+          <div class="action-bar-group"><span class="action-bar-hint">2 open issues</span><button class="btn btn-danger" type="button">Reject</button><button class="btn btn-primary" type="button">Verify</button></div>
+        </div>
+        <span class="sg-cap">Action bar with a danger decision</span>
+      </div>
+    </div>
+
+    <h2 class="sg-h2" id="files">Files and viewer</h2>
+    <p class="sg-note">A <b>file row</b> is an attached file; clicking it shows the file in the <b>document viewer</b>, and the row is marked as selected. Keep the viewer beside the fields it backs up so people can check one against the other. The <b>total banner</b> keeps the claim's total in view.</p>
+    <div class="sg-two">
+      <div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+          <button class="file-row" type="button" aria-pressed="false"><span class="start"><span class="filetype">PDF</span><span><span class="name">Air Ticket SQ638.pdf</span><span class="meta">412 KB · Attached to line item 1</span></span></span><span class="end"><svg class="i"><use href="#i-chev-right"/></svg></span></button>
+          <button class="file-row is-hover" type="button" aria-pressed="false"><span class="start"><span class="filetype">PDF</span><span><span class="name">Hotel Tokyo Folio.pdf</span><span class="meta">Hover</span></span></span><span class="end"><svg class="i"><use href="#i-chev-right"/></svg></span></button>
+          <button class="file-row" type="button" aria-pressed="true"><span class="start"><span class="filetype">PDF</span><span><span class="name">Deviation email.pdf</span><span class="meta">Selected: showing in the viewer</span></span></span><span class="end"><svg class="i"><use href="#i-eye"/></svg></span></button>
+          <button class="file-row is-focus" type="button" aria-pressed="false"><span class="start"><span class="filetype">PNG</span><span><span class="name">Taxi receipt.png</span><span class="meta">Focus</span></span></span><span class="end"><svg class="i"><use href="#i-chev-right"/></svg></span></button>
+        </div>
+        <div class="total-banner" style="margin-top:var(--space-5)">
+          <div class="big"><span>Total claim amount</span><b>SGD 1,240.50</b></div>
+          <div class="split">Amt w/o GST: <code>SGD 1,159.50</code><br>Total GST: <code>SGD 81.00</code></div>
+        </div>
+      </div>
+      <div class="sg-two" style="grid-template-columns:1fr">
+        <div class="sg-doc">
+          <section class="doc-viewer" aria-label="Receipt preview">
+            <div class="doc-viewer-tab"><span class="name"><span class="filetype filetype-solid">PDF</span>Air Ticket SQ638.pdf</span><button class="btn-icon" type="button" aria-label="Open in a new tab"><svg class="i"><use href="#i-external"/></svg></button></div>
+            <div class="doc-viewer-toolbar"><span>Attached to <b>line item 1</b></span><span><button type="button" aria-label="Zoom out">−</button> 100% <button type="button" aria-label="Zoom in">+</button></span></div>
+            <div class="doc-viewer-canvas"><div class="doc-viewer-page sg-receipt"><b>Singapore Airlines</b><div><span>E-ticket</span><span>SQ638-ETKT-0021</span></div><div><span>Fare excl. GST</span><span>SGD 450.00</span></div><div><span>GST 9%</span><span>SGD 40.50</span></div><div style="font-weight:700;color:var(--text-strong)"><span>Total</span><span>SGD 490.50</span></div></div></div>
+          </section>
+        </div>
+        <div class="sg-doc" style="height:200px">
+          <section class="doc-viewer" aria-label="Empty receipt preview">
+            <div class="doc-viewer-tab"><span class="name">No receipt to show</span></div>
+            <div class="doc-viewer-toolbar"><span>Line item 3</span></div>
+            <div class="doc-viewer-canvas"><div class="doc-viewer-empty"><svg class="i" style="width:28px;height:28px"><use href="#i-clip"/></svg><b>Line item 3 has no attachment</b><span>Pick one in its Attachment field.</span></div></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sg-h2" id="dialogs">Dialogs and toasts</h2>
+    <p class="sg-note">Use a <b>dialog</b> to confirm a decision that's hard to undo, or to collect one more detail. The title says what will happen ("Reject this claim"), and the confirm button repeats it. Use a <b>toast</b> to confirm something that already happened; it disappears on its own, so never put the only copy of important information in it.</p>
+    <div class="sg-two">
+      <div class="sg-demo is-tinted">
+        <dialog class="dialog" open aria-labelledby="d1">
+          <form method="dialog" class="dialog-body">
+            <h2 id="d1">Reject this claim</h2>
+            <p>The claimant sees this reason and can resubmit.</p>
+            <label class="field-label" for="d1r">Reason for rejecting</label>
+            <textarea class="input" id="d1r" aria-invalid="true" aria-describedby="d1e"></textarea>
+            <span class="field-error" id="d1e"><svg class="i"><use href="#i-alert"/></svg>Add a reason so the claimant knows what to fix.</span>
+            <div class="dialog-actions"><button class="btn btn-plain" type="button">Cancel</button><button class="btn btn-danger" type="button">Reject claim</button></div>
+          </form>
+        </dialog>
+        <span class="sg-cap">Dialog with an error</span>
+      </div>
+      <div>
+        <div class="sg-demo is-tinted">
+          <dialog class="dialog" open aria-labelledby="d2">
+            <div class="dialog-body">
+              <h2 id="d2"><svg class="i" style="color:var(--success-icon);width:20px;height:20px"><use href="#i-check-circle"/></svg>Claim submitted</h2>
+              <p>Claim <code>DIP2026519518</code> for <b>SGD 1,240.50</b> has gone to Fenty Wap (approving officer).</p>
+              <div class="dialog-actions"><button class="btn btn-plain" type="button">Go to My requests</button><button class="btn btn-primary" type="button">Start a new claim</button></div>
+            </div>
+          </dialog>
+          <span class="sg-cap">Confirmation dialog</span>
+        </div>
+        <div class="sg-row" style="margin-top:var(--space-4)">
+          <div class="toast">Line item removed.</div>
+          <button class="btn btn-secondary" type="button" id="showToast">Show a toast</button>
+          <button class="btn btn-secondary" type="button" id="showDialog">Open a dialog</button>
+        </div>
+        <span class="sg-cap">Toast (static and floating)</span>
+      </div>
+    </div>
+    <div class="toast is-floating" id="floatToast" role="status" aria-live="polite">Comment saved on line item 2.</div>
+    <dialog class="dialog" id="modalDemo" aria-labelledby="md">
+      <form method="dialog" class="dialog-body">
+        <h2 id="md">Discard this claim?</h2>
+        <p>Everything you've entered and attached will be cleared.</p>
+        <div class="dialog-actions"><button class="btn btn-plain" value="cancel">Keep editing</button><button class="btn btn-danger" value="confirm">Discard claim</button></div>
+      </form>
+    </dialog>
+
+    <!-- ============================ AI PATTERNS ============================ -->
+    <h2 class="sg-h2" id="ai">AI checker patterns</h2>
+    <p class="sg-note">Used wherever AI checks a claim. The teal panel header frames the AI's work; purple marks anything the AI produced (the AI tag, AI-filled status). Show the AI's evidence next to the claim's value so the checker can decide, and always let them override it.</p>
+    <div class="sg-two">
+      <div>
+        <div class="ai-panel-header"><span class="ico"><svg class="i"><use href="#i-bolt"/></svg></span><h3>AI line item verification &amp; policy checker</h3><span class="badge-live">Live</span></div>
+        <div class="ai-banner ai-banner-warning"><span class="msg"><svg class="i"><use href="#i-alert"/></svg>5 issues to review</span><span class="badge badge-warning badge-xs">Action needed</span></div>
+        <div class="ai-banner ai-banner-success" style="margin-top:var(--space-3);border-top:1px solid var(--success-border-subtle)"><span class="msg"><svg class="i"><use href="#i-check-circle"/></svg>No open issues on this line item</span><span class="badge badge-success badge-xs">Ready</span></div>
+        <span class="sg-cap">Panel header; result banners (warning, success)</span>
+
+        <div class="ai-section is-tinted" style="margin-top:var(--space-4)">
+          <button class="ai-section-toggle" type="button" aria-expanded="true"><span class="title"><svg class="i"><use href="#i-clipboard"/></svg>Line data extraction comparison</span><span class="sg-row" style="gap:var(--space-2)"><span class="badge badge-error badge-xs"><svg class="i"><use href="#i-alert"/></svg>2 flagged</span><svg class="i chev"><use href="#i-chev-up"/></svg></span></button>
+          <div class="ai-section-body">
+            <div class="compare-row"><span class="label">Invoice date</span><span class="value">2025-10-01</span><span class="status status-success"><svg class="i"><use href="#i-check"/></svg><span class="sr-only">Matches</span></span></div>
+            <div class="compare-flag">
+              <div class="sg-row" style="justify-content:space-between"><span class="name"><svg class="i"><use href="#i-alert"/></svg>GST amount mismatch</span><span class="badge badge-warning badge-xs">Confidence 85%</span></div>
+              <div class="sg-row" style="justify-content:space-between"><span class="vals">Claim: <code>0.00</code> · AI read: <code class="ai">10.90</code></span><button class="btn btn-accent btn-sm" type="button">Update</button></div>
+            </div>
+            <div class="compare-resolved"><span><b>Total amount</b> updated to the AI value</span><button class="btn-link" type="button">Undo</button></div>
+          </div>
+        </div>
+        <span class="sg-cap">Section with compare rows: match, flag (with the AI's value and confidence), resolved</span>
+      </div>
+      <div>
+        <div class="ai-section">
+          <button class="ai-section-toggle" type="button" aria-expanded="true"><span class="title"><svg class="i"><use href="#i-shield"/></svg>Policy checks</span><span class="sg-row" style="gap:var(--space-2)"><span class="badge badge-error badge-xs"><svg class="i"><use href="#i-x-circle"/></svg>3 failed</span><svg class="i chev"><use href="#i-chev-up"/></svg></span></button>
+          <div class="ai-section-body">
+            <div class="filter-chips" style="padding-bottom:var(--space-2);border-bottom:1px solid var(--border)">
+              <button class="filter-chip" type="button" aria-pressed="true">All <span class="count">10</span></button>
+              <button class="filter-chip" type="button" aria-pressed="false">Fail <span class="count">3</span></button>
+              <button class="filter-chip" type="button" aria-pressed="false">Pass <span class="count">5</span></button>
+              <button class="filter-chip" type="button" aria-pressed="false">Not applicable <span class="count">2</span></button>
+            </div>
+            <div class="check-item is-fail">
+              <button class="check-row" type="button" aria-expanded="true"><span class="name"><svg class="i" style="color:var(--error-icon)"><use href="#i-x-circle"/></svg><span>Email approval from a senior manager must be attached<span class="sub">Approval present, but the approver's title is missing.</span></span></span><span class="badge badge-error"><svg class="i"><use href="#i-x-circle"/></svg>Fail</span></button>
+              <div class="check-detail">
+                <div class="discrepancy"><div><h4>Expected</h4>Email approval from a Senior Manager, Head or Director</div><div><h4>Found</h4>Approved by Grayson Chong; title not stated</div></div>
+                <div class="low-confidence"><b>Approver title (0%)</b><span>Not on this document.</span></div>
+                <div class="sg-row" style="justify-content:space-between"><button class="btn-link" type="button"><svg class="i"><use href="#i-eye"/></svg>View in document</button><button class="btn btn-accent btn-sm" type="button"><svg class="i"><use href="#i-check"/></svg>Mark resolved</button></div>
+              </div>
+            </div>
+            <div class="check-item is-resolved"><button class="check-row" type="button"><span class="name"><svg class="i" style="color:var(--success-icon)"><use href="#i-check-circle"/></svg>A flight itinerary must be attached</span><span class="badge badge-success"><svg class="i"><use href="#i-check"/></svg>Resolved</span></button></div>
+            <div class="check-item"><button class="check-row is-hover" type="button"><span class="name"><svg class="i" style="color:var(--success-icon)"><use href="#i-check-circle"/></svg>Receipt is not a duplicate (hover)</span><span class="badge badge-success"><svg class="i"><use href="#i-check-circle"/></svg>Pass</span></button></div>
+            <div class="check-item"><button class="check-row" type="button" disabled><span class="name"><svg class="i" style="color:var(--text-subtle)"><use href="#i-minus-circle"/></svg>Entertainment guest list must be attached</span><span class="badge badge-neutral"><svg class="i"><use href="#i-minus-circle"/></svg>Not applicable</span></button></div>
+          </div>
+        </div>
+        <span class="sg-cap">Check items: failed and open (with evidence), resolved, passed, not applicable</span>
+
+        <div class="field" style="margin-top:var(--space-4)"><label class="field-label" for="ai1">Amount excl. GST<span class="badge badge-ai badge-xs" style="margin-left:var(--space-1-5)"><svg class="i"><use href="#i-bot"/></svg>AI</span></label><input class="input" id="ai1" value="450.00"></div>
+        <span class="sg-cap">AI tag on a field filled from a document; remove it once the person edits the value</span>
+        <div class="comment-bar" style="margin-top:var(--space-3)"><label class="field-label" for="c1">Comments</label><input class="input" id="c1" placeholder="Add a comment for line item 2…"><button class="btn btn-accent btn-sm" type="button">Save</button></div>
+        <div class="note" style="margin-top:var(--space-2)"><b>Your note:</b> Asked the claimant for the approver's title.</div>
+        <span class="sg-cap">Comment bar and saved note</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* Builds the token sections from lists, reading live values from tokens.css */
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const PALETTE = {
+  Brand: ['brand', 'brand-dark', 'action', 'danger'],
+  Teal: ['teal-900', 'teal-800', 'teal-700', 'teal-600', 'teal-500', 'teal-300', 'teal-200', 'teal-100', 'teal-50'],
+  Slate: ['slate-900', 'slate-800', 'slate-700', 'slate-600', 'slate-500', 'slate-400', 'slate-300', 'slate-200', 'slate-100', 'slate-50'],
+  Amber: ['amber-900', 'amber-800', 'amber-700', 'amber-500', 'amber-300', 'amber-200', 'amber-100', 'amber-50'],
+  Red: ['red-800', 'red-700', 'red-600', 'red-200', 'red-100', 'red-50'],
+  Green: ['green-800', 'green-500', 'green-400', 'green-100', 'green-50'],
+  'Purple, sidebar and neutrals': ['purple-800', 'purple-100', 'nav-text', 'nav-section', 'nav-border', 'nav-active-bg', 'white', 'doc-grey'],
+};
+document.getElementById('palette-groups').innerHTML = Object.entries(PALETTE).map(([group, names]) => `
+  <h3 class="sg-h3">${esc(group)}</h3>
+  <div class="sg-swatches">${names.map(n => `<div class="sg-swatch"><i style="background:var(--${n})"></i><span>--${n}<br><code>${css('--' + n)}</code></span></div>`).join('')}</div>`).join('');
+
+// [token, palette it points to, use]
+const SEMANTIC = [
+  ['Text'],
+  ['text', 'slate-800', 'Body copy and values'], ['text-strong', 'slate-900', 'Emphasised values, dialog titles'],
+  ['text-heading', 'nav-text', 'Page title'], ['text-secondary', 'slate-700', 'Section titles'],
+  ['text-muted', 'slate-500', 'Field labels, meta, hints'], ['text-subtle', 'slate-400', 'Placeholders, disabled text, list numbers'],
+  ['text-inverse', 'white', 'Text on dark or coloured fills'], ['text-on-brand-muted', 'teal-200', 'Secondary text on the total banner'],
+  ['text-link', 'teal-600', 'Link buttons'], ['text-link-hover', 'teal-700', 'Link buttons on hover'],
+  ['Surfaces'],
+  ['surface', 'white', 'Page, cards, inputs'], ['surface-subtle', 'slate-50', 'Card headers, file rows, read-only boxes'],
+  ['surface-muted', 'slate-100', 'Chips, doc tab, hover on neutral controls'], ['surface-selected', 'teal-50', 'Selected file, open line header'],
+  ['surface-inverse', 'slate-800', 'Toast'], ['surface-brand', 'brand', 'Brand bar, total banner'],
+  ['Borders and focus'],
+  ['border', 'slate-200', 'Cards, dividers'], ['border-subtle', 'slate-100', 'Rules inside cards'],
+  ['border-strong', 'slate-300', 'Inputs, dashed drop areas'], ['border-hover', 'slate-400', 'Hovered input'],
+  ['border-accent', 'teal-300', 'Hovered row, open line item'], ['border-selected', 'teal-500', 'Selected file, focused input'],
+  ['focus-ring', 'teal-500', 'Keyboard focus outline'],
+  ['Actions'],
+  ['action-primary', 'action', 'Primary button fill, secondary outline'], ['action-primary-hover', 'teal-700', 'Primary button on hover'],
+  ['action-secondary-hover-bg', 'teal-50', 'Secondary button on hover'], ['action-danger', 'danger', 'Danger button text and outline'],
+  ['action-danger-hover-bg', 'red-50', 'Danger button on hover'], ['action-disabled-bg', 'slate-100', 'Disabled button fill'],
+  ['Accent'],
+  ['accent', 'teal-700', 'AI panel header, solid number badge'], ['accent-strong', 'teal-800', 'Accent hover, icon tile'],
+  ['accent-soft', 'teal-100', 'Number badge, category tag'], ['accent-softer', 'teal-50', 'Summary pill, add button'],
+  ['Status (always with an icon or words)'],
+  ['success-bg', 'green-100', 'Pass, complete'], ['success-text', 'green-800', 'Success text'], ['success-icon', 'green-500', 'Success icons'],
+  ['warning-bg', 'amber-100', 'Needs review, missing'], ['warning-text', 'amber-800', 'Warning text'], ['warning-icon', 'amber-500', 'Warning icons'],
+  ['error-bg', 'red-100', 'Fail'], ['error-text', 'red-800', 'Error text'], ['error-border', 'red-600', 'Invalid field border'],
+  ['ai-bg', 'purple-100', 'Anything the AI produced'], ['ai-text', 'purple-800', 'AI text, switch on'],
+  ['neutral-bg', 'slate-100', 'Chips, not applicable'], ['neutral-text', 'slate-600', 'Chip text'],
+  ['Sidebar and viewer'],
+  ['sidebar-active-bg', 'nav-active-bg', 'Active nav item'], ['sidebar-active-text', 'brand', 'Active nav item text and bar'],
+  ['sidebar-switch-bg', 'slate-100', 'Workspace switch (was #eef1f4)'], ['sidebar-brand-chip-bg', 'slate-50', 'Brand chip (was #f5f5f5)'],
+  ['sidebar-user-name', 'nav-text', 'Signed-in name (was #09090b)'], ['sidebar-user-meta', 'slate-500', 'Staff number (was #71717a)'],
+  ['tab-selected', 'brand-dark', 'Selected tab'], ['doc-toolbar-bg', 'slate-700', 'Viewer toolbar (was #2b3648)'],
+  ['doc-canvas-bg', 'doc-grey', 'Viewer canvas'], ['backdrop', 'slate-900 at 40%', 'Behind dialogs'],
+];
+document.querySelector('#semantic-table tbody').innerHTML = SEMANTIC.map(r => r.length === 1
+  ? `<tr><th colspan="3" style="padding-top:var(--space-4);color:var(--text-strong)">${esc(r[0])}</th></tr>`
+  : `<tr><td><span class="sg-dot" style="background:var(--${r[0]})"></span><code>--${r[0]}</code></td><td><code>${esc(r[1])}</code> <span class="sg-cap" style="display:inline">${esc(css('--' + r[0]))}</span></td><td>${esc(r[2])}</td></tr>`).join('');
+
+const TYPE = [['display', 'Page title: DIP2025171622'], ['2xl', 'Banner amount: SGD 1,240.50'], ['xl', 'Dialog title: Reject this claim'],
+  ['lg', 'Line item title, sidebar, tabs'], ['md', 'Section title, dialog body, toast'], ['sm', 'Body: the base size for copy and inputs'],
+  ['xs', 'Meta, badges and sub-lines'], ['2xs', 'Micro badges: file type, AI tag']];
+document.getElementById('type-scale').innerHTML = TYPE.map(([k, sample]) => `
+  <div style="display:grid;grid-template-columns:170px 1fr;gap:var(--space-4);align-items:baseline;padding:var(--space-2) 0;border-bottom:1px solid var(--border-subtle)">
+    <code class="sg-code">--font-size-${k}<br>${css('--font-size-' + k)} / ${css('--line-height-' + k)}</code>
+    <span style="font-size:var(--font-size-${k});line-height:var(--line-height-${k});color:var(--text-strong)">${esc(sample)}</span>
+  </div>`).join('');
+
+const SPACE = ['0-5', '1', '1-5', '2', '3', '4', '5', '6', '8', '12'];
+document.getElementById('space-scale').innerHTML = SPACE.map(k => `
+  <div class="sg-space" style="padding:var(--space-1) 0"><code class="sg-code" style="width:110px">--space-${k}</code><span style="width:40px;color:var(--text-muted)">${css('--space-' + k)}</span><i style="width:var(--space-${k})"></i></div>`).join('');
+
+const BUTTONS = [['primary', 'Submit claim', 'Primary', 'The main decision'], ['secondary', 'Save draft', 'Secondary', 'Actions beside the primary'],
+  ['danger', 'Reject', 'Danger', 'Destructive decisions'], ['plain', 'Cancel', 'Plain', 'Low emphasis, dialogs'], ['accent', 'Update', 'Accent', 'Compact AI panel actions']];
+document.getElementById('button-states').innerHTML = '<span></span><span class="h">Default</span><span class="h">Hover</span><span class="h">Focus</span><span class="h">Disabled</span><span class="h">Small</span>'
+  + BUTTONS.map(([v, label, name, use]) => `<span class="v">${name}<span class="sg-cap">${use}</span></span>
+    <span><button class="btn btn-${v}" type="button">${label}</button></span>
+    <span><button class="btn btn-${v} is-hover" type="button">${label}</button></span>
+    <span><button class="btn btn-${v} is-focus" type="button">${label}</button></span>
+    <span><button class="btn btn-${v}" type="button" disabled>${label}</button></span>
+    <span><button class="btn btn-${v} btn-sm" type="button">${label}</button></span>`).join('');
+
+// Demos
+let t;
+document.getElementById('showToast').addEventListener('click', () => {
+  const el = document.getElementById('floatToast');
+  el.classList.add('is-visible'); clearTimeout(t); t = setTimeout(() => el.classList.remove('is-visible'), 2600);
+});
+document.getElementById('showDialog').addEventListener('click', () => document.getElementById('modalDemo').showModal());
+document.querySelectorAll('.filter-chips').forEach(g => g.addEventListener('click', e => {
+  const b = e.target.closest('.filter-chip'); if (!b || b.disabled) return;
+  g.querySelectorAll('.filter-chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+}));
+document.querySelectorAll('.switch').forEach(s => s.addEventListener('click', () => s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true')));
+document.querySelectorAll('.tabs').forEach(g => g.addEventListener('click', e => {
+  const b = e.target.closest('.tab'); if (!b || b.disabled) return;
+  g.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === b));
+}));
+</script>
+</body>
+</html>
