@@ -98,16 +98,47 @@
   /* Main is locked to the viewport: head + tabs on top, action bar at the bottom,
      and only the form column (and the document canvas) scroll in between. */
   .main { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-  .page-head, .tabs { flex: none; }
+  .page-head, .tabs-row { flex: none; }
   .page-head { padding: 17px 20px 7px; }
   .page-head h1 { margin: 0; font-size: 30px; line-height: 36px; font-weight: 400; color: #000; }
-  .tabs { display: flex; gap: 24px; padding: 0 16px; border-bottom: 1px solid var(--nav-border); margin: 0 20px 0 20px; }
+  /* The tabs row also holds "Show receipt preview" at its right end, while the preview is closed */
+  .tabs-row { display: flex; align-items: stretch; gap: 16px; margin: 0 24px 0 20px; border-bottom: 1px solid var(--nav-border); }
+  .tabs { flex: 1; min-width: 0; display: flex; gap: 24px; padding: 0 16px; }
   .tab { border: 0; background: transparent; height: 40px; font-size: 14px; line-height: 20px; color: var(--nav-text); padding: 0; position: relative; }
   .tab[aria-selected="true"] { color: var(--brand-dark); }
   .tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--brand-dark); }
 
-  .content { flex: 1; min-height: 0; padding: 0 24px 0 20px; display: grid; grid-template-columns: minmax(0, 1fr) clamp(320px, 45%, 512px); gap: 20px; }
+  .content { flex: 1; min-height: 0; padding: 0 24px 0 20px; display: grid; grid-template-columns: minmax(0, 1fr) clamp(480px, 40vw, 760px); gap: 20px; }
+  /* Receipt preview closed: the form takes the full width */
+  .content[data-preview="closed"] { grid-template-columns: minmax(0, 1fr); }
+  .content[data-preview="closed"] .viewer { display: none; }
+  .preview-toggle { flex: none; align-self: center; display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid var(--action); color: var(--action); border-radius: var(--radius-sm); padding: 5px 12px; font-weight: 500; }
+  .preview-toggle:hover { background: var(--teal-50); }
+  .preview-toggle[hidden] { display: none; }
   .content[hidden] { display: none; }
+
+  /* ---------- Checking tasks (the list of claims, #tasks) ---------- */
+  /* The claim's tabs, panels and decisions only show when a claim is open */
+  .main[data-view="tasks"] .tabs-row,
+  .main[data-view="tasks"] [role="tabpanel"],
+  .main[data-view="tasks"] .actionbar { display: none !important; }
+  #pageTitle:focus { outline: none; }   /* focus lands here after navigating, for screen readers; it isn't a control */
+  .tasks { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 24px 24px 20px; }
+  .tasks[hidden] { display: none; }
+  .tasks-intro { margin: 0 0 16px; color: var(--slate-500); font-size: 13px; line-height: 18px; }
+  .tasks-card { border: 1px solid var(--slate-200); border-radius: var(--radius); box-shadow: var(--shadow-xs); overflow-x: auto; background: #fff; }
+  .tasks-table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 18px; }
+  .tasks-table th { padding: 10px 16px; text-align: left; font-weight: 500; font-size: 12px; color: var(--slate-500); background: var(--slate-50); border-bottom: 1px solid var(--slate-200); white-space: nowrap; }
+  .tasks-table td { padding: 14px 16px; border-top: 1px solid var(--slate-100); color: var(--slate-800); vertical-align: middle; }
+  .tasks-table tbody tr:first-child td { border-top: 0; }
+  .tasks-table tbody tr { cursor: pointer; transition: background .15s; }
+  .tasks-table tbody tr:hover { background: var(--teal-50); }
+  .tasks-table .r { text-align: right; }
+  .tasks-table .amount { font-weight: 600; white-space: nowrap; }
+  .tasks-table .chev { width: 32px; color: var(--slate-400); }
+  .tasks-table .ai-dot { font-size: 12px; white-space: nowrap; }
+  .task-link { color: var(--teal-700); font-weight: 600; text-decoration: none; }
+  .task-link:hover { text-decoration: underline; }
   /* Small inline padding keeps focus outlines and card shadows from being clipped by the scroll box */
   .col-left { display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 0; overflow-y: auto; padding: 20px 8px 24px 4px; }
   .col-left > * { flex-shrink: 0; } /* don't let cards squash to fit the scroll box */
@@ -150,7 +181,12 @@
   .ai-dot svg.i { width: 12px; height: 12px; }
 
   /* Expanded line item */
-  .item-open { border: 2px solid var(--teal-300); border-radius: var(--radius); overflow: hidden; background: #fff; }
+  /* The open line item is capped at 70% of the screen: the header strip stays put and the
+     claim details and AI checker below it each scroll on their own */
+  .item-open { border: 2px solid var(--teal-300); border-radius: var(--radius); overflow: hidden; background: #fff; display: flex; flex-direction: column; max-height: 70vh; }
+  .item-open .item-strip { flex: none; }
+  .item-open .side-by-side { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .item-open .claim-side, .item-open .ai-side { min-height: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
   .item-strip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px 11px; background: rgba(240,253,250,.9); border-bottom: 1px solid var(--teal-200); flex-wrap: wrap; }
   .strip-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .strip-num { background: var(--teal-700); color: #fff; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
@@ -181,7 +217,9 @@
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .coding-box { padding: 11px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; }
   .coding-box div { display: flex; justify-content: space-between; gap: 12px; }
-  .coding-box span { color: var(--slate-400); }
+  .coding-box span { color: var(--slate-400); flex: none; }
+  .coding-box b { font-weight: inherit; text-align: right; overflow-wrap: anywhere; }
+  .coding-box b.empty { color: var(--slate-400); }
   .comments { border-top: 1px solid var(--slate-200); padding-top: 13px; display: flex; align-items: center; gap: 8px; }
   .comments label { color: var(--slate-400); font-size: 11px; font-weight: 700; letter-spacing: .55px; text-transform: uppercase; }
   .comments input { flex: 1; min-width: 0; border: 1px solid var(--slate-300); border-radius: 4px; padding: 7px 13px; font: inherit; color: var(--slate-800); }
@@ -316,7 +354,7 @@
   .doc-toolbar .icon-btn { color: var(--slate-300); padding: 0 0 0 8px; }
   .doc-toolbar .icon-btn:hover { background: none; color: #fff; }
   .doc-canvas { background: #525659; flex: 1; min-height: 0; overflow: auto; padding: 16px; }
-  .sheet { background: #fff; border: 1px solid var(--slate-300); box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 8px 10px -6px rgba(0,0,0,.1); width: 478px; min-height: 620px; padding: 25px; display: flex; flex-direction: column; gap: 16px; font-size: 9px; line-height: 11.25px; color: var(--slate-700); transform-origin: top left; margin: 0 auto; }
+  .sheet { background: #fff; border: 1px solid var(--slate-300); box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 8px 10px -6px rgba(0,0,0,.1); width: 478px; min-height: 620px; padding: 25px; display: flex; flex-direction: column; gap: 16px; font-size: 9px; line-height: 11.25px; color: var(--slate-700); transform-origin: top left; margin: 0; } /* .sheet-wrap centres it; a centred sheet would shift right before scaling */
   .sheet-wrap { margin: 0 auto; }
   .inv-head { display: flex; justify-content: space-between; border-bottom: 1px solid var(--slate-200); padding-bottom: 17px; }
   .inv-brand { font-size: 18px; line-height: 28px; font-weight: 900; letter-spacing: -.9px; color: var(--slate-900); }
@@ -385,9 +423,14 @@
     .item-summary .what { grid-column: 2; }
     .item-summary .coding, .item-summary .amounts { grid-column: 2; text-align: left; }
   }
-  @media (max-width: 1100px) {
+  /* The open line item's two sides need about 700px. Below that (a narrow window, or the
+     receipt preview taking the room) they stack and share one scroll area under the header. */
+  .col-left { container-type: inline-size; }
+  @container (max-width: 700px) {
     .side-by-side { grid-template-columns: 1fr; }
     .claim-side { border-right: 0; border-bottom: 1px solid var(--slate-100); }
+    .item-open .side-by-side { grid-template-rows: none; grid-auto-rows: max-content; overflow-y: auto; overscroll-behavior: contain; }
+    .item-open .claim-side, .item-open .ai-side { overflow: visible; min-height: auto; }
   }
   @media (max-width: 860px) {
     .app, .app[data-sidebar="collapsed"] { grid-template-columns: 1fr; }
@@ -398,8 +441,11 @@
     .content { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 24px; }
     .col-left { overflow: visible; padding: 0; }
     .viewer { padding: 0; }
+    .item-open { max-height: none; }   /* the page scrolls here, so no inner scroll areas */
+    .item-open .side-by-side { overflow: visible; }
     .doc-canvas { flex: none; height: min(852px, calc(100vh - 220px)); min-height: 420px; }
-    .tabs { margin: 0 16px; overflow-x: auto; }
+    .tabs-row { margin: 0 16px; }
+    .tabs { overflow-x: auto; }
     .decision-hint { display: none; }
   }
 </style>
@@ -460,11 +506,11 @@
       <div class="nav-divider"></div>
 
       <div class="nav-section">Manage</div>
-      <a class="nav-link" href="#" aria-current="page"><svg class="i"><use href="#i-glasses"/></svg><span class="label">Checking Tasks</span></a>
+      <a class="nav-link" href="#tasks" aria-current="page"><svg class="i"><use href="#i-glasses"/></svg><span class="label">Checking Tasks</span></a>
       <div class="nav-divider"></div>
 
       <div class="nav-section">Payment requests</div>
-      <a class="nav-link" href="#"><svg class="i"><use href="#i-plus-circle"/></svg><span class="label">New C. Requests</span></a>
+      <a class="nav-link" href="../requestor-form/index.html"><svg class="i"><use href="#i-plus-circle"/></svg><span class="label">New C. Requests</span></a>
       <a class="nav-link" href="#"><svg class="i"><use href="#i-receipt"/></svg><span class="label">My Requests</span></a>
       <a class="nav-link" href="#"><svg class="i"><use href="#i-stamp"/></svg><span class="label">Supporting tasks</span></a>
       <div class="nav-divider"></div>
@@ -491,13 +537,28 @@
   </aside>
 
   <!-- ===== Main ===== -->
-  <div class="main">
-    <header class="page-head"><h1>DIP2025171622</h1></header>
+  <div class="main" id="main" data-view="claim">
+    <header class="page-head"><h1 id="pageTitle" tabindex="-1">DIP2025171622</h1></header>
 
-    <div class="tabs" role="tablist" aria-label="Claim views">
-      <button class="tab" role="tab" aria-selected="false" aria-controls="panel-details" id="tab-details">Details</button>
-      <button class="tab" role="tab" aria-selected="false" aria-controls="panel-workflow" id="tab-workflow">Workflow</button>
-      <button class="tab" role="tab" aria-selected="true" aria-controls="panel-ai" id="tab-ai">Details (AI-Enabled) ✨</button>
+    <!-- ===== Checking tasks: the list of claims to check (#tasks) ===== -->
+    <section class="tasks" id="tasksView" aria-labelledby="pageTitle" hidden>
+      <p class="tasks-intro">Claims waiting for you to check. Open one to review its line items against the receipts and the AI's findings.</p>
+      <div class="tasks-card">
+        <table class="tasks-table">
+          <thead><tr><th scope="col">Claim number</th><th scope="col">Claimant</th><th scope="col">Claim type</th><th scope="col" class="r">Total</th><th scope="col">AI issues</th><th scope="col"><span class="sr-only">Open</span></th></tr></thead>
+          <tbody id="tasksBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="tabs-row">
+      <div class="tabs" role="tablist" aria-label="Claim views">
+        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-details" id="tab-details">Details</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-workflow" id="tab-workflow">Workflow</button>
+        <button class="tab" role="tab" aria-selected="true" aria-controls="panel-ai" id="tab-ai">Details (AI-Enabled) ✨</button>
+      </div>
+      <!-- Shown while the receipt preview is closed -->
+      <button class="preview-toggle" id="openPreview" aria-controls="viewer" hidden><svg class="i"><use href="#i-eye"/></svg>Show receipt preview</button>
     </div>
 
     <div class="placeholder-panel" role="tabpanel" id="panel-details" aria-labelledby="tab-details" hidden>
@@ -509,7 +570,7 @@
       The approval workflow view isn't in this prototype yet.
     </div>
 
-    <div class="content" role="tabpanel" id="panel-ai" aria-labelledby="tab-ai">
+    <div class="content" role="tabpanel" id="panel-ai" aria-labelledby="tab-ai" data-preview="open">
       <div class="col-left">
 
         <!-- 01 Basic & Payment Information -->
@@ -518,17 +579,7 @@
             <h2 class="sec-title" id="s01"><span class="sec-num">01</span>Basic &amp; Payment Information</h2>
             <span class="card-meta">Claim Form Data</span>
           </div>
-          <div class="fields">
-            <div class="field"><span class="f-label">Pay to (vendor/employee)</span><span class="f-value">Michael Scott</span></div>
-            <div class="field"><span class="f-label">Claim type</span><span class="f-value">Marketing Q3 Regional Conference</span></div>
-            <div class="field"><span class="f-label">Invoice/receipt number</span><span class="f-value" style="font-weight:400">1234567890123456</span></div>
-            <div class="field"><span class="f-label">Invoice/receipt date</span><span class="f-value">DD/MM/YYYY <svg class="i"><use href="#i-calendar"/></svg></span></div>
-            <div class="field rule span-4"><span class="f-label">Description</span><span class="f-value">Ritz Carlton Tokyo</span></div>
-            <div class="field rule"><span class="f-label">Payment terms</span><span class="f-value">[K000] Pay Immediately</span></div>
-            <div class="field rule"><span class="f-label">Payment method</span><span class="f-value">[G] IBG (Employee)</span></div>
-            <div class="field rule"><span class="f-label">House bank</span><span class="f-value">[MMI$] MMI Cash on Hand</span></div>
-            <div class="field rule"><span class="f-label">Advance number</span><span class="f-value">[ADV2501164] Trip to Tokyo</span></div>
-          </div>
+          <div class="fields" id="basicFields"></div>
         </section>
 
         <!-- 02 Workflow Officers -->
@@ -537,25 +588,20 @@
             <h2 class="sec-title" id="s02"><span class="sec-num">02</span>Workflow Officers</h2>
             <button class="link-btn" data-toast="The approval matrix opens in a new view in the real product.">Approval Matrix</button>
           </div>
-          <div class="fields">
-            <div class="field"><span class="f-label">Supporting officer (opt.)</span><span class="f-value">Dwight Schrute</span></div>
-            <div class="field"><span class="f-label">Approving officer</span><span class="f-value">Fenty Wap</span></div>
-            <div class="field"><span class="f-label">Proxy officers (opt.)</span><span class="f-value">Biggie Smalls</span></div>
-            <div class="field"><span class="f-label">Proxy group</span><span class="f-value">Coolio &amp; the gang</span></div>
-          </div>
+          <div class="fields" id="officerFields"></div>
         </section>
 
         <!-- 03 Line Items -->
         <div class="items-head">
-          <h2 class="sec-title"><span class="sec-num">03</span>Line Items (3)</h2>
-          <span class="total-pill">Total: $1,240.50 SGD</span>
+          <h2 class="sec-title"><span class="sec-num">03</span><span id="itemsTitle">Line Items</span></h2>
+          <span class="total-pill" id="totalPill"></span>
         </div>
         <div class="items" id="items"></div>
 
         <!-- Attachments -->
         <div class="attachments" id="attachments">
           <section class="card att-box" aria-labelledby="pop">
-            <h3 id="pop"><svg class="i"><use href="#i-file"/></svg>Proof of Purchase (2)</h3>
+            <h3 id="pop"><svg class="i"><use href="#i-file"/></svg><span id="proofTitle">Proof of Purchase</span></h3>
             <div id="files-proof" style="display:flex;flex-direction:column;gap:8px"></div>
           </section>
           <section class="card att-box" aria-labelledby="sup">
@@ -566,17 +612,17 @@
       </div>
 
       <!-- ===== Document viewer ===== -->
-      <aside class="viewer" aria-label="Document viewer">
+      <aside class="viewer" id="viewer" aria-label="Document viewer">
         <div class="total-banner">
-          <div class="big"><span>Total claim amount</span><b>SGD 1,240.50</b></div>
-          <div class="split">Amt w/o GST: <code>SGD 1,159.50</code><br>Total GST: <code>SGD 81.00</code></div>
+          <div class="big"><span id="bannerLabel">Total claim amount</span><b id="bannerTotal"></b></div>
+          <div class="split" id="bannerSplit"></div>
         </div>
         <div class="doc">
           <div class="doc-tab">
             <div class="name"><span class="pdf">PDF</span><span id="docName"></span></div>
             <div>
               <button class="icon-btn" aria-label="Open in new window" data-toast="Opens the file in a new window in the real product."><svg class="i"><use href="#i-external"/></svg></button>
-              <button class="icon-btn" aria-label="Close preview" id="closeDoc"><svg class="i"><use href="#i-x"/></svg></button>
+              <button class="icon-btn" aria-label="Close receipt preview" aria-controls="viewer" id="closeDoc"><svg class="i"><use href="#i-x"/></svg></button>
             </div>
           </div>
           <div class="doc-toolbar">
@@ -599,7 +645,7 @@
 
     <!-- ===== Bottom action bar ===== -->
     <footer class="actionbar">
-      <button class="btn-outline" data-toast="Goes back to Checking Tasks in the real product.">Go back</button>
+      <button class="btn-outline" id="goBack">Go back</button>
       <div class="decisions">
         <span class="decision-hint" id="decisionHint" aria-live="polite"></span>
         <button class="btn-reject" id="rejectBtn">Reject</button>
@@ -638,95 +684,215 @@
 
 <script>
 /* =========================================================
-   Mock data. Everything here is placeholder content taken
-   from the Figma frame; entries marked `placeholder: true`
-   were added to fill counts the design shows (e.g. 3/10).
+   Mock data: the claims waiting to be checked.
+   Claim DIP2025171622 is the one in the Figma frame; entries
+   marked `placeholder: true` were added to fill counts the
+   design shows (e.g. 3/10). Claim DIP2025171688 isn't in the
+   Figma: it's a second sample with foreign-currency line items.
+
+   Each claim has its own basic info, officers, totals, files
+   and line items; `start` is what's open when you first view it.
+   Receipt previews are in SHEETS, keyed by file id.
+
+   Line item coding: fund, cost, gl, aor and io, plus the
+   optional agency, assignment, as123, location and project.
+   Empty values show as "—".
    ========================================================= */
-const FILES = [
-  { id: 'air',   group: 'proof',   name: 'Air Ticket SQ638.pdf',  sub: 'Air Ticket_Alison.pdf • 412 KB', docName: 'Air Ticket_Alison.pdf', ref: 'SQ638-ETKT' },
-  { id: 'hotel', group: 'proof',   name: 'Hotel Tokyo Folio.pdf', sub: 'RitzCarlton_Receipt.pdf • Page 1-2', docName: 'Hotel_Invoice_Accommodation_Alison.pdf', ref: 'NR-2026-000…' },
-  { id: 'email', group: 'support', name: 'Air Ticket & Hotel Deviation Email_Alison.pdf', sub: 'Alison • 1 Oct 2025, 08:00 • Email approval', docName: 'Air Ticket & Hotel Deviation Email_Alison.pdf', ref: 'EML-0110' },
+const CLAIMS = [
+  {
+    id: 'DIP2025171622',
+    basic: {
+      payTo: 'Michael Scott', claimType: 'Marketing Q3 Regional Conference',
+      invNo: '1234567890123456', invDate: 'DD/MM/YYYY', description: 'Ritz Carlton Tokyo',
+      paymentTerms: '[K000] Pay Immediately', paymentMethod: '[G] IBG (Employee)',
+      houseBank: '[MMI$] MMI Cash on Hand', advance: '[ADV2501164] Trip to Tokyo',
+    },
+    officers: { supporting: 'Dwight Schrute', approving: 'Fenty Wap', proxies: 'Biggie Smalls', proxyGroup: 'Coolio & the gang' },
+    total: {
+      label: 'Total claim amount', amount: 'SGD 1,240.50', pill: 'Total: $1,240.50 SGD',
+      lines: [['Amt w/o GST', 'SGD 1,159.50'], ['Total GST', 'SGD 81.00']],
+    },
+    start: { activeItem: 2, activeFile: 'hotel', openCheck: 'c1' },
+    files: [
+      { id: 'air',   group: 'proof',   name: 'Air Ticket SQ638.pdf',  sub: 'Air Ticket_Alison.pdf • 412 KB', docName: 'Air Ticket_Alison.pdf', ref: 'SQ638-ETKT' },
+      { id: 'hotel', group: 'proof',   name: 'Hotel Tokyo Folio.pdf', sub: 'RitzCarlton_Receipt.pdf • Page 1-2', docName: 'Hotel_Invoice_Accommodation_Alison.pdf', ref: 'NR-2026-000…' },
+      { id: 'email', group: 'support', name: 'Air Ticket & Hotel Deviation Email_Alison.pdf', sub: 'Alison • 1 Oct 2025, 08:00 • Email approval', docName: 'Air Ticket & Hotel Deviation Email_Alison.pdf', ref: 'EML-0110' },
+    ],
+    items: [
+      {
+        n: 1, category: 'Airfare', title: 'Airfare — Singapore to Tokyo (SQ638)', attachment: 'email', currency: 'SGD',
+        coding: ['CC: 12345 - Marketing', 'FC: TRG/PT(Tech)', 'GL: 720100'],
+        net: '$450.00', gst: '$40.50', total: '$490.50',
+        detail: {
+          total: 'SGD 490.50', excl: '450.00', gst: '40.50', taxCode: 'P9',
+          description: 'Return economy airfare, Singapore to Tokyo (SQ638), for the Marketing Q3 Regional Conference',
+          invNo: 'SQ638-ETKT-0021', invDate: '2025-09-28',
+          fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '720100 [AIRFARE-OVERSEAS]', aor: '', io: '',
+          agency: '', assignment: '', as123: '', location: '', project: '',
+        },
+        compare: [
+          { label: 'Ticket date', value: '2025-09-28' },
+          { label: 'Ticket number', value: '618-2401187733' },
+          { label: 'Amount (excl. GST)', value: '450.00' },
+        ],
+        flags: [],
+        checks: 'allPass',
+      },
+      {
+        n: 2, category: 'Accommodation', title: 'Hotel Tokyo from DD-MM to DD-MM', attachment: 'email', currency: 'SGD',
+        coding: ['CC: FPP', 'FC: TRG/PT(Tech)', 'GL: 300-602'],
+        net: '$1,769.02', gst: '$0.00', total: '$1,769.02',
+        detail: {
+          total: 'SGD 1,769.02', excl: '1,769.02', gst: '0.00', taxCode: 'P0',
+          description: 'Hotel stay at Hôtel 34B Astotel, Paris — 2 rooms x 3 nights (15–18 Oct 2026), Double Room with Breakfast + Breakfast Add-on, City Tax included',
+          invNo: 'INV-34B-20260721-0156', invDate: '2026-07-21',
+          fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '300-602 [TPT&TRAVELLING-OVERSEAS]', aor: 'AOR-CONF2', io: '',
+          agency: '', assignment: '', as123: '', location: '', project: '',
+        },
+        compare: [
+          { label: 'Invoice / Folio Date', value: '2025-10-01' },
+          { label: 'Invoice/Folio Number', value: '061-2509012346' },
+          { label: 'Amount (excl. GST)', value: '1,934.70' },
+        ],
+        flags: [
+          { id: 'gst',   name: 'GST Amount Mismatch',   meta: 'Confidence: 85%', metaChip: true, field: 'gst',   user: '0.00',     ai: '10.90' },
+          { id: 'total', name: 'Total Amount Mismatch', meta: 'Difference: +10.90',               field: 'total', user: '1,934.70', ai: '1,945.60' },
+        ],
+        checks: [
+          { id: 'c1', status: 'fail', name: 'For non-approved vendor: an email approval from a Senior Manager, Head, Director, or Senior Director must be attached',
+            sub: "Email approval present but approver's title is missing.", conf: 85,
+            expected: 'Email approval present AND approver holds one of: Senior Manager, Head, Director, Senior Director',
+            actual: "Email approval is present (approved by Grayson Chong), but the approver's title is not mentioned anywhere in the email document — title could not be determined",
+            lowConf: { field: 'Email Approval Approver Title (0%):', text: "Field not present on this document. The approver's title or designation is not mentioned anywhere in the email." },
+            doc: 'email' },
+          { id: 'c2', status: 'fail', name: 'A flight itinerary (electronic ticket) must be attached',
+            expected: 'An e-ticket or itinerary showing passenger name, flight number and dates',
+            actual: 'No itinerary or e-ticket found among the attached documents for this line item', conf: 92 },
+          { id: 'c3', status: 'fail', placeholder: true, name: 'Nightly room rate must be within the overseas lodging cap for the destination',
+            expected: 'Room rate per night ≤ lodging cap for Tokyo',
+            actual: 'Receipt shows a Paris property, so the AI could not match the rate to the Tokyo cap', conf: 70 },
+          { id: 'p1', status: 'pass', placeholder: true, name: 'Receipt is issued in the claimant\'s or traveller\'s name' },
+          { id: 'p2', status: 'pass', placeholder: true, name: 'Receipt is not a duplicate of an earlier claim' },
+          { id: 'p3', status: 'pass', placeholder: true, name: 'Receipt shows the amount was paid in full' },
+          { id: 'p4', status: 'pass', placeholder: true, name: 'GL account matches the expense category' },
+          { id: 'p5', status: 'pass', placeholder: true, name: 'Currency is converted at the rate on the receipt date' },
+          { id: 'n1', status: 'na',   placeholder: true, name: 'Entertainment guest list must be attached' },
+          { id: 'n2', status: 'na',   placeholder: true, name: 'Asset tag required for equipment over SGD 2,000' },
+        ],
+      },
+      {
+        n: 3, category: 'Airfare', title: 'Airfare — Singapore to Tokyo (SQ638)', attachment: 'email', currency: 'SGD',
+        coding: ['CC: 12345 - Marketing', 'FC: TRG/PT(Tech)', 'GL: 720100'],
+        net: '$450.00', gst: '$40.50', total: '$490.50',
+        detail: {
+          total: 'SGD 490.50', excl: '450.00', gst: '40.50', taxCode: 'P9',
+          description: 'Return economy airfare, Singapore to Tokyo (SQ638), for the Marketing Q3 Regional Conference',
+          invNo: 'SQ638-ETKT-0022', invDate: '2025-09-28',
+          fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '720100 [AIRFARE-OVERSEAS]', aor: '', io: '',
+          agency: '', assignment: '', as123: '', location: '', project: '',
+        },
+        compare: [
+          { label: 'Ticket date', value: '2025-09-28' },
+          { label: 'Ticket number', value: '618-2401187734' },
+          { label: 'Amount (excl. GST)', value: '450.00' },
+        ],
+        flags: [],
+        checks: 'allPass',
+      },
+    ],
+  },
+
+  // Second sample (not in the Figma): a software subscription billed in USD, so no GST or GST Rate.
+  // Prices, invoice and bank details are invented for the prototype.
+  {
+    id: 'DIP2025171688',
+    // Non-PT claim: finance & policy checks aren't decided for these yet, so the panel is hidden
+    // and its checks don't count as issues. The checks below stay so they can be switched on.
+    policyChecks: false,
+    basic: {
+      payTo: 'Pam Beesly', claimType: 'Software subscription',
+      invNo: 'INV-2025-10-48213', invDate: '01/11/2025', description: 'Claude Team plan and API usage for the internal AI tooling pilot, Oct 2025',
+      paymentTerms: '[K000] Pay Immediately', paymentMethod: '[G] IBG (Employee)',
+      houseBank: '[DBS1] DBS Operating Account', advance: '',
+    },
+    officers: { supporting: 'Andy Bernard', approving: 'Fenty Wap', proxies: 'Grayson Chong', proxyGroup: 'Finance proxies' },
+    total: {
+      label: 'Total claim amount (converted)', amount: 'SGD 249.12', pill: 'Total: SGD 249.12 (converted)',
+      lines: [['USD 192.37', '≈ SGD 249.12'], ['Rate on invoice date', '1 USD = 1.2950 SGD']],
+    },
+    start: { activeItem: 1, activeFile: 'us-invoice', openCheck: 'u1' },
+    files: [
+      { id: 'us-invoice',  group: 'proof',   name: 'Claude invoice INV-2025-10-48213.pdf', sub: 'Anthropic • 1 Nov 2025 • Invoice', docName: 'Claude_Invoice_INV-2025-10-48213.pdf', ref: 'INV-2025-10-48213' },
+      { id: 'us-bankslip', group: 'proof',   name: 'Bank slip — card payment.pdf',          sub: 'Card **** 1190 • 2 Nov 2025 • Bank slip', docName: 'Bank_Slip_Card_1190_02Nov2025.pdf', ref: 'TXN-8830215' },
+      { id: 'aor-doc',     group: 'support', name: 'Approved AOR — AOR-OPS1 software.pdf', sub: 'Grayson Chong • 15 Aug 2025 • Approved AOR', docName: 'AOR-OPS1_Software_Subscriptions_Approved.pdf', ref: 'AOR-OPS1' },
+    ],
+    items: [
+      {
+        n: 1, category: 'Software subscription', title: 'Claude Team plan — 5 seats (Oct 2025)', attachment: 'us-invoice', currency: 'USD',
+        coding: ['CC: FPP', 'FC: 123Proj', 'GL: 640100'],
+        total: 'USD 150.00', approx: 'SGD 194.25',
+        detail: {
+          total: 'USD 150.00', amount: '150.00', approx: '194.25',
+          description: 'Claude Team plan, 5 seats × USD 30.00, billing period 1–31 Oct 2025',
+          invNo: 'INV-2025-10-48213', invDate: '2025-11-01',
+          fund: '123Proj', cost: 'FPP', gl: '640100 [SOFTWARE-SUBSCRIPTIONS]', aor: 'AOR-OPS1', io: 'IO-500402',
+          agency: 'Carrot HQ', assignment: 'ASG-3105 AI tooling pilot', as123: 'AS-01107', location: 'Singapore', project: 'PRJ-0199 Internal tooling',
+        },
+        compare: [
+          { label: 'Invoice date', value: '2025-11-01' },
+          { label: 'Invoice number', value: 'INV-2025-10-48213' },
+          { label: 'Amount', value: '150.00' },
+        ],
+        flags: [],
+        checks: [
+          { id: 'u1', status: 'fail', name: 'Software subscriptions must be within the approved AOR',
+            sub: 'Invoice bills 5 seats; AOR-OPS1 approves up to 4.', conf: 91,
+            expected: 'Seats and monthly amount on the invoice are within AOR-OPS1: up to 4 seats, USD 120.00 a month',
+            actual: 'Invoice bills 5 seats (USD 150.00 for October), one seat and USD 30.00 over the approved AOR',
+            doc: 'aor-doc' },
+          { id: 'u2', status: 'pass', name: 'Invoice is addressed to the claimant or the company' },
+          { id: 'u3', status: 'pass', name: 'Bank slip shows the payment to the vendor' },
+          { id: 'u4', status: 'pass', name: 'Receipt is not a duplicate of an earlier claim' },
+          { id: 'u5', status: 'pass', name: 'GL account matches the expense category' },
+          { id: 'u6', status: 'pass', name: 'Currency is converted at the rate on the invoice date' },
+          { id: 'u7', status: 'na',   name: 'Asset tag required for equipment over SGD 2,000' },
+        ],
+      },
+      {
+        n: 2, category: 'Software subscription', title: 'Claude API usage (Oct 2025)', attachment: 'us-invoice', currency: 'USD',
+        coding: ['CC: FPP', 'FC: 123Proj', 'GL: 640100'],
+        total: 'USD 42.37', approx: 'SGD 54.87',
+        detail: {
+          total: 'USD 42.37', amount: '42.37', approx: '54.87',
+          description: 'Claude API usage (pay as you go), 1–31 Oct 2025',
+          invNo: 'INV-2025-10-48213', invDate: '2025-11-01',
+          fund: '123Proj', cost: 'FPP', gl: '640100 [SOFTWARE-SUBSCRIPTIONS]', aor: 'AOR-OPS1', io: 'IO-500402',
+          agency: 'Carrot HQ', assignment: 'ASG-3105 AI tooling pilot', as123: 'AS-01108', location: 'Singapore', project: 'PRJ-0199 Internal tooling',
+        },
+        compare: [
+          { label: 'Invoice date', value: '2025-11-01' },
+          { label: 'Invoice number', value: 'INV-2025-10-48213' },
+        ],
+        flags: [
+          { id: 'us-total', name: 'Total Amount Mismatch', meta: 'Difference: +0.90', field: 'total', user: '42.37', ai: '43.27', aiApprox: '56.03' },
+        ],
+        checks: [
+          { id: 'a1', status: 'pass', name: 'Invoice is addressed to the claimant or the company' },
+          { id: 'a2', status: 'pass', name: 'Bank slip shows the payment to the vendor' },
+          { id: 'a3', status: 'pass', name: 'Usage is within the approved AOR (up to USD 100.00 a month)' },
+          { id: 'a4', status: 'pass', name: 'Receipt is not a duplicate of an earlier claim' },
+          { id: 'a5', status: 'pass', name: 'Currency is converted at the rate on the invoice date' },
+          { id: 'a6', status: 'na',   name: 'Asset tag required for equipment over SGD 2,000' },
+        ],
+      },
+    ],
+  },
 ];
 
-const ITEMS = [
-  {
-    n: 1, category: 'Airfare', title: 'Airfare — Singapore to Tokyo (SQ638)', attachment: 'email',
-    coding: ['CC: 12345 - Marketing', 'FC: FC-99 - Operations', 'GL: 720100', 'AOR: None | IO No: None'],
-    net: '$450.00', gst: '$40.50', total: '$490.50',
-    detail: {
-      total: 'SGD 490.50', excl: '450.00', gst: '40.50', taxCode: 'P9',
-      description: 'Return economy airfare, Singapore to Tokyo (SQ638), for the Marketing Q3 Regional Conference',
-      invNo: 'SQ638-ETKT-0021', invDate: '2025-09-28',
-      fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '720100 [AIRFARE-OVERSEAS]', aor: 'AOR-CONF2',
-    },
-    compare: [
-      { label: 'Ticket date', value: '2025-09-28' },
-      { label: 'Ticket number', value: '618-2401187733' },
-      { label: 'Amount (excl. GST)', value: '450.00' },
-    ],
-    flags: [],
-    checks: 'allPass',
-  },
-  {
-    n: 2, category: 'Accommodation', title: 'Hotel Tokyo from DD-MM to DD-MM', attachment: 'email',
-    coding: ['CC: FPP', 'FC: TRG/PT(Tech)', 'GL: 300-602', 'AOR: AOR-CONF2'],
-    net: '$1,769.02', gst: '$0.00', total: '$1,769.02',
-    detail: {
-      total: 'SGD 1,769.02', excl: '1,769.02', gst: '0.00', taxCode: 'P0',
-      description: 'Hotel stay at Hôtel 34B Astotel, Paris — 2 rooms x 3 nights (15–18 Oct 2026), Double Room with Breakfast + Breakfast Add-on, City Tax included',
-      invNo: 'INV-34B-20260721-0156', invDate: '2026-07-21',
-      fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '300-602 [TPT&TRAVELLING-OVERSEAS]', aor: 'AOR-CONF2',
-    },
-    compare: [
-      { label: 'Invoice / Folio Date', value: '2025-10-01' },
-      { label: 'Invoice/Folio Number', value: '061-2509012346' },
-      { label: 'Amount (excl. GST)', value: '1,934.70' },
-    ],
-    flags: [
-      { id: 'gst',   name: 'GST Amount Mismatch',   meta: 'Confidence: 85%', metaChip: true, field: 'gst',   user: '0.00',     ai: '10.90' },
-      { id: 'total', name: 'Total Amount Mismatch', meta: 'Difference: +10.90',               field: 'total', user: '1,934.70', ai: '1,945.60' },
-    ],
-    checks: [
-      { id: 'c1', status: 'fail', name: 'For non-approved vendor: an email approval from a Senior Manager, Head, Director, or Senior Director must be attached',
-        sub: "Email approval present but approver's title is missing.", conf: 85,
-        expected: 'Email approval present AND approver holds one of: Senior Manager, Head, Director, Senior Director',
-        actual: "Email approval is present (approved by Grayson Chong), but the approver's title is not mentioned anywhere in the email document — title could not be determined",
-        lowConf: { field: 'Email Approval Approver Title (0%):', text: "Field not present on this document. The approver's title or designation is not mentioned anywhere in the email." },
-        doc: 'email' },
-      { id: 'c2', status: 'fail', name: 'A flight itinerary (electronic ticket) must be attached',
-        expected: 'An e-ticket or itinerary showing passenger name, flight number and dates',
-        actual: 'No itinerary or e-ticket found among the attached documents for this line item', conf: 92 },
-      { id: 'c3', status: 'fail', placeholder: true, name: 'Nightly room rate must be within the overseas lodging cap for the destination',
-        expected: 'Room rate per night ≤ lodging cap for Tokyo',
-        actual: 'Receipt shows a Paris property, so the AI could not match the rate to the Tokyo cap', conf: 70 },
-      { id: 'p1', status: 'pass', placeholder: true, name: 'Receipt is issued in the claimant\'s or traveller\'s name' },
-      { id: 'p2', status: 'pass', placeholder: true, name: 'Receipt is not a duplicate of an earlier claim' },
-      { id: 'p3', status: 'pass', placeholder: true, name: 'Receipt shows the amount was paid in full' },
-      { id: 'p4', status: 'pass', placeholder: true, name: 'GL account matches the expense category' },
-      { id: 'p5', status: 'pass', placeholder: true, name: 'Currency is converted at the rate on the receipt date' },
-      { id: 'n1', status: 'na',   placeholder: true, name: 'Entertainment guest list must be attached' },
-      { id: 'n2', status: 'na',   placeholder: true, name: 'Asset tag required for equipment over SGD 2,000' },
-    ],
-  },
-  {
-    n: 3, category: 'Airfare', title: 'Airfare — Singapore to Tokyo (SQ638)', attachment: 'email',
-    coding: ['CC: 12345 - Marketing', 'FC: FC-99 - Operations', 'GL: 720100', 'AOR: None | IO No: None'],
-    net: '$450.00', gst: '$40.50', total: '$490.50',
-    detail: {
-      total: 'SGD 490.50', excl: '450.00', gst: '40.50', taxCode: 'P9',
-      description: 'Return economy airfare, Singapore to Tokyo (SQ638), for the Marketing Q3 Regional Conference',
-      invNo: 'SQ638-ETKT-0022', invDate: '2025-09-28',
-      fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '720100 [AIRFARE-OVERSEAS]', aor: 'AOR-CONF2',
-    },
-    compare: [
-      { label: 'Ticket date', value: '2025-09-28' },
-      { label: 'Ticket number', value: '618-2401187734' },
-      { label: 'Amount (excl. GST)', value: '450.00' },
-    ],
-    flags: [],
-    checks: 'allPass',
-  },
-];
+// The claim being checked. FILES and ITEMS point at its files and line items.
+let currentClaim = null;
+let FILES = [];
+let ITEMS = [];
 
 const PASS_SET = [
   "Receipt is issued in the claimant's or traveller's name",
@@ -741,20 +907,27 @@ const PASS_SET = [
 
 /* ---------- State ---------- */
 const state = {
-  activeItem: 2,
-  activeFile: 'hotel',
+  // Per claim (saved and restored when you switch claims): activeItem, activeFile, openCheck,
+  // filter, resolvedFlags, resolvedChecks, comments. Set from the claim's `start` when first opened.
+  activeItem: null,
+  activeFile: null,
   zoom: 53,
+  zoomFit: true,      // fit the receipt to the panel's width; + / − switch to a manual zoom
+  previewOpen: true,  // receipt preview panel; remembered while you stay on the page
   panelOpen: { a: true, b: true },
   filter: 'all',
-  openCheck: 'c1',
+  openCheck: null,
   resolvedFlags: new Set(),
   resolvedChecks: new Set(),
   comments: {},
   rerunning: false,
 };
 
+// Each line item knows whether its claim shows finance & policy checks (on unless the claim says `policyChecks: false`)
+CLAIMS.forEach(c => c.items.forEach(it => { it.policyChecks = c.policyChecks !== false; }));
+
 // Turn 'allPass' items into concrete checks
-ITEMS.forEach(it => {
+CLAIMS.flatMap(c => c.items).forEach(it => {
   if (it.checks === 'allPass') {
     it.checks = PASS_SET.map((name, i) => ({ id: `i${it.n}p${i}`, status: 'pass', placeholder: true, name }))
       .concat([{ id: `i${it.n}n1`, status: 'na', placeholder: true, name: 'Entertainment guest list must be attached' },
@@ -767,12 +940,23 @@ const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ico = (name, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 const fileById = id => FILES.find(f => f.id === id);
+const orDash = v => v || '—';   // empty optional values show a dash
+// GST rate: the tax code with its percentage, e.g. "P9 (9%)"
+const GST_RATES = { P9: 9, P0: 0 };
+const gstRate = code => code in GST_RATES ? `${code} (${GST_RATES[code]}%)` : orDash(code);
+// Rows in the expanded line item's coding box, in order
+const CODING_ROWS = [
+  ['fund', 'Fund Center'], ['cost', 'Cost Center'], ['gl', 'GL Account'], ['aor', 'AOR (Fund Number)'], ['io', 'IO'],
+  ['agency', 'Agency'], ['assignment', 'Assignment'], ['as123', 'As123'], ['location', 'Location'], ['project', 'Project'],
+];
 
-function openIssues(item) {
-  const flags = item.flags.filter(f => !state.resolvedFlags.has(f.id)).length;
-  const fails = item.checks.filter(c => c.status === 'fail' && !state.resolvedChecks.has(c.id)).length;
+// Open AI issues on a line item; `st` is the review progress to count against (the open claim's by default)
+function openIssues(item, st = state) {
+  const flags = item.flags.filter(f => !st.resolvedFlags.has(f.id)).length;
+  const fails = item.policyChecks ? item.checks.filter(c => c.status === 'fail' && !st.resolvedChecks.has(c.id)).length : 0;
   return flags + fails;
 }
+const isSGD = it => it.currency === 'SGD';
 function totalOpenIssues() { return ITEMS.reduce((n, it) => n + openIssues(it), 0); }
 
 let toastTimer;
@@ -798,26 +982,33 @@ function summaryCard(it) {
       <span class="item-title">${esc(it.title)}</span>
       ${aiState}
     </span>
-    <span class="coding">${it.coding.map(esc).join('<br>')}</span>
-    <span class="amounts">Net: ${it.net}<br>GST (9%): ${it.gst}<b>Total: ${it.total}</b></span>
+    <span class="coding">${[...it.coding, `AOR (Fund Number): ${orDash(it.detail.aor)} | IO: ${orDash(it.detail.io)}`].map(esc).join('<br>')}</span>
+    <span class="amounts">${isSGD(it)
+      ? `Net: ${it.net}<br>GST (9%): ${it.gst}<b>Total: ${it.total}</b>`
+      : `No GST<br>≈ ${esc(it.approx)}<b>Total: ${esc(it.total)}</b>`}</span>
   </button>`;
 }
 
 function claimSide(it) {
   const d = it.detail;
-  const gstFixed = state.resolvedFlags.has('gst') && it.n === 2;
-  const totalFixed = state.resolvedFlags.has('total') && it.n === 2;
-  const gst = gstFixed ? '10.90' : d.gst;
-  const total = totalFixed ? 'SGD 1,945.60' : d.total;
+  // A flag the checker accepted (Update) replaces the claim's value with the AI's
+  const fixed = field => it.flags.find(f => f.field === field && state.resolvedFlags.has(f.id));
+  const gstFix = fixed('gst'), totalFix = fixed('total');
+  const gst = gstFix ? gstFix.ai : d.gst;
+  const total = totalFix ? `${it.currency} ${totalFix.ai}` : d.total;
+  const file = fileById(it.attachment);
   const saved = state.comments[it.n];
   return `
   <div class="claim-side">
     <div class="box amount-box">
       <div class="amount-row"><span>Total Amount</span><b>${total}</b></div>
-      <div class="amount-split">
+      <div class="amount-split">${isSGD(it) ? `
         <div><span>Excl. GST</span><b>${d.excl}</b></div>
-        <div><span>GST</span><b class="${gstFixed ? 'changed' : ''}">${gst}</b></div>
-        <div><span>Tax Code</span><b>${d.taxCode}</b></div>
+        <div><span>GST</span><b class="${gstFix ? 'changed' : ''}">${gst}</b></div>
+        <div><span>GST Rate</span><b>${gstRate(d.taxCode)}</b></div>` : `
+        <div><span>Currency</span><b>${esc(it.currency)}</b></div>
+        <div><span>Amount</span><b class="${totalFix ? 'changed' : ''}">${esc(totalFix ? totalFix.ai : d.amount)}</b></div>
+        <div><span>In SGD (approx.)</span><b class="${totalFix?.aiApprox ? 'changed' : ''}">${esc(totalFix?.aiApprox || d.approx)}</b></div>`}
       </div>
     </div>
     <div class="field"><span class="f-label">Description</span><div class="box desc-box">${esc(d.description)}</div></div>
@@ -826,12 +1017,9 @@ function claimSide(it) {
       <div class="field"><span class="f-label">Invoice date</span><span style="font-weight:500">${esc(d.invDate)}</span></div>
     </div>
     <div class="box coding-box">
-      <div><span>Fund Center:</span>${esc(d.fund)}</div>
-      <div><span>Cost Center:</span>${esc(d.cost)}</div>
-      <div><span>GL Account:</span>${esc(d.gl)}</div>
-      <div><span>AOR:</span>${esc(d.aor)}</div>
+      ${CODING_ROWS.map(([key, label]) => `<div><span>${label}:</span><b${d[key] ? '' : ' class="empty"'}>${esc(orDash(d[key]))}</b></div>`).join('')}
     </div>
-    <div><button class="link-btn" data-show-file="${it.attachment}">${ico('clip')}Email approval.pdf</button></div>
+    ${file ? `<div><button class="link-btn" data-show-file="${file.id}">${ico('clip')}${esc(file.name)}</button></div>` : ''}
     ${saved ? `<div class="saved-note"><b>Your note:</b> ${esc(saved)}</div>` : ''}
     <div class="comments">
       <label for="comment-${it.n}">Comments</label>
@@ -866,7 +1054,7 @@ function panelA(it) {
   </div>`;
 }
 
-function checkCard(c) {
+function checkCard(c, it) {
   const resolved = state.resolvedChecks.has(c.id);
   const isFail = c.status === 'fail' && !resolved;
   const isOpen = isFail && state.openCheck === c.id;
@@ -888,7 +1076,7 @@ function checkCard(c) {
       </div>
       ${c.lowConf ? `<div class="low-conf"><b>• Low extraction confidence:</b><span><b>${esc(c.lowConf.field)}</b> ${esc(c.lowConf.text)}</span></div>` : ''}
       <div class="check-actions">
-        <button class="link-btn" data-show-file="${c.doc || 'email'}" data-scroll-attachments>${ico('clip')}Invoices / Supporting Documents</button>
+        <button class="link-btn" data-show-file="${c.doc || it.attachment}" data-scroll-attachments>${ico('clip')}Invoices / Supporting Documents</button>
         <button class="btn-teal" data-resolve-check="${c.id}">Mark resolved</button>
       </div>
     </div>` : '';
@@ -931,7 +1119,7 @@ function panelB(it) {
     </button>
     <div class="panel-body" id="panelB-${it.n}" ${open ? '' : 'hidden'}>
       <div class="filters" role="group" aria-label="Filter checks">${f('all', 'All')}${f('fail', 'Fail', 'fail')}${f('pass', 'Pass', 'pass')}${f('na', 'Not Applicable')}</div>
-      ${visible.length ? visible.map(checkCard).join('') : `<div class="empty-filter">No checks in this group. Pick another filter to see the rest.</div>`}
+      ${visible.length ? visible.map(c => checkCard(c, it)).join('') : `<div class="empty-filter">No checks in this group. Pick another filter to see the rest.</div>`}
     </div>
   </div>`;
 }
@@ -945,7 +1133,7 @@ function aiSide(it) {
   <div class="ai-side">
     <div class="ai-head"><span class="ico">${ico('bolt')}</span><h3>AI line item verification &amp; policy checker</h3><span class="live">LIVE</span></div>
     ${banner}
-    <div class="panels">${panelA(it)}${panelB(it)}</div>
+    <div class="panels">${panelA(it)}${it.policyChecks ? panelB(it) : ''}</div>
   </div>`;
 }
 
@@ -1041,6 +1229,99 @@ const SHEETS = {
     </div>
     <div class="saved-note" style="font-size:10px"><b>Why this was flagged:</b> the signature has no title or designation, so the AI can't confirm the approver is a Senior Manager or above.</div>`,
   air: () => `<div class="no-preview">${ico('file')}<br>Preview for this file isn't in the prototype yet.<br>Add one in the <code>SHEETS</code> object.</div>`,
+
+  // Claim DIP2025171688: mock documents for the prototype, not real ones
+  'us-invoice': () => `
+    <div class="inv-head">
+      <div>
+        <div class="inv-brand">ANTHROPIC</div>
+        <div class="inv-sub">Claude</div>
+        <div class="muted" style="padding-top:4px">San Francisco, CA, USA</div>
+      </div>
+      <div class="inv-right">
+        <div class="ttl">INVOICE</div>
+        <div>Invoice No. : <code>INV-2025-10-48213</code></div>
+        <div>Issue Date : 1 Nov 2025</div>
+        <div>Billing Period : 1–31 Oct 2025</div>
+      </div>
+    </div>
+    <div class="guest">
+      <div><h5>Bill to</h5><p><b>Pam Beesly</b></p><p>Carrot Pte Ltd, Singapore</p></div>
+      <div><h5>Plan</h5><p>Claude Team</p><p>Workspace : Carrot AI tooling pilot</p></div>
+    </div>
+    <div>
+      <table class="inv-table">
+        <thead><tr><th>DESCRIPTION</th><th class="c">QTY</th><th class="r">PRICE (USD)</th><th class="r">AMOUNT (USD)</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:500">Claude Team plan, monthly<small>1 Oct 2025 – 31 Oct 2025</small></td><td class="c">${currentClaim.policyChecks !== false ? '<span class="hl" title="AOR-OPS1 approves up to 4 seats">5</span>' : '5'}</td><td class="r">30.00</td><td class="r">150.00</td></tr>
+          <tr><td style="font-weight:500">API usage, pay as you go<small>1 Oct 2025 – 31 Oct 2025</small></td><td class="c">1</td><td class="r">43.27</td><td class="r"><span class="hl" title="Claimed as 42.37">43.27</span></td></tr>
+        </tbody>
+      </table>
+      <div class="inv-totals">
+        <div><span class="muted">Subtotal:</span><span>193.27 USD</span></div>
+        <div><span class="muted">Tax:</span><span>0.00 USD</span></div>
+        <div class="grand"><span>TOTAL AMOUNT:</span><b>193.27 USD</b></div>
+      </div>
+    </div>
+    <div class="paid">
+      <div><p>Payment Method : Card **** 1190</p><p>Payment Date : 2 Nov 2025</p><p>Amount Paid : 193.27 USD</p></div>
+      <span class="paid-stamp">PAID</span>
+    </div>
+    <div class="inv-foot">Mock invoice for the ezPay prototype.<b>Not a real Anthropic invoice</b>Values are invented for design testing.</div>`,
+  'us-bankslip': () => `
+    <div class="inv-head">
+      <div>
+        <div class="inv-brand">CARROT <em>BANK</em></div>
+        <div class="inv-sub">Card transaction slip</div>
+      </div>
+      <div class="inv-right">
+        <div class="ttl">BANK SLIP</div>
+        <div>Reference : <code>TXN-8830215</code></div>
+        <div>Posted : 2 Nov 2025</div>
+      </div>
+    </div>
+    <div class="guest">
+      <div><h5>Card holder</h5><p><b>Pam Beesly</b></p><p>Card : **** **** **** 1190</p></div>
+      <div><h5>Merchant</h5><p>ANTHROPIC* CLAUDE</p><p>San Francisco, US</p></div>
+    </div>
+    <div>
+      <table class="inv-table">
+        <thead><tr><th>DETAIL</th><th class="r">FOREIGN AMOUNT</th><th class="r">RATE</th><th class="r">AMOUNT (SGD)</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:500">Card purchase<small>Transaction date 2 Nov 2025</small></td><td class="r">USD <span class="hl" title="Matches the invoice total">193.27</span></td><td class="r">1.2950</td><td class="r">250.28</td></tr>
+        </tbody>
+      </table>
+      <div class="inv-totals"><div class="grand"><span>AMOUNT DEBITED:</span><b>250.28 SGD</b></div></div>
+    </div>
+    <div class="paid">
+      <div><p>Status : Posted</p><p>Account : Personal card (employee)</p></div>
+      <span class="paid-stamp">POSTED</span>
+    </div>
+    <div class="inv-foot">Mock bank slip for the ezPay prototype.<b>Not a real bank document</b></div>`,
+  'aor-doc': () => `
+    <div class="email-head">
+      <div class="subj">Approved AOR — AOR-OPS1: Software subscriptions</div>
+      <div><span class="muted">Requested by:</span> <b>Pam Beesly</b>, Operations</div>
+      <div><span class="muted">Approved by:</span> <b>Grayson Chong</b>, Head of Operations</div>
+      <div><span class="muted">Approved on:</span> 15 Aug 2025</div>
+    </div>
+    <div>
+      <table class="inv-table">
+        <thead><tr><th>ITEM</th><th>LIMIT</th><th>PERIOD</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:500">Claude Team plan<small>Internal AI tooling pilot</small></td><td>${currentClaim.policyChecks !== false ? '<span class="hl" title="The October invoice bills 5 seats">Up to 4 seats</span>' : 'Up to 4 seats'}, USD 120.00 a month</td><td>Sep 2025 – Feb 2026</td></tr>
+          <tr><td style="font-weight:500">Claude API usage<small>Pay as you go</small></td><td>Up to USD 100.00 a month</td><td>Sep 2025 – Feb 2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="email-body">
+      <p>Fund centre 123Proj, cost centre FPP, IO-500402. Charges above these limits need a revised AOR before they're claimed.</p>
+    </div>
+    <div class="paid">
+      <div><p>Status : Approved</p><p>Valid until : 28 Feb 2026</p></div>
+      <span class="paid-stamp">APPROVED</span>
+    </div>
+    ${currentClaim.policyChecks !== false ? '<div class="saved-note" style="font-size:10px"><b>Why this was flagged:</b> the AOR covers up to 4 Team plan seats, but the October invoice bills 5.</div>' : ''}`,
 };
 
 function renderViewer() {
@@ -1050,14 +1331,129 @@ function renderViewer() {
   $('#sheet').innerHTML = f ? SHEETS[f.id]() : `<div class="no-preview">Pick a file from Proof of Purchase or Supporting Documents to preview it here.</div>`;
   applyZoom();
 }
-function applyZoom() {
-  // 53% in the design maps to the sheet's natural 478px width
-  const scale = state.zoom / 53;
+// 53% in the design maps to the sheet's natural 478px width
+const SHEET_WIDTH = 478, ZOOM_BASE = 53;
+function setScale() {
+  const scale = state.zoom / ZOOM_BASE;
   const sheet = $('#sheet');
   sheet.style.transform = `scale(${scale})`;
-  $('#sheetWrap').style.width = `${478 * scale}px`;
+  $('#sheetWrap').style.width = `${SHEET_WIDTH * scale}px`;
   $('#sheetWrap').style.height = `${sheet.offsetHeight * scale}px`;
   $('#zoomVal').textContent = `${state.zoom}%`;
+}
+// The zoom that makes the sheet fill the canvas width (less its 16px padding each side)
+function fitZoom() {
+  const avail = $('#docCanvas').clientWidth - 32;
+  return Math.max(30, Math.min(150, Math.floor(ZOOM_BASE * avail / SHEET_WIDTH)));
+}
+function applyZoom() {
+  if (state.zoomFit && state.previewOpen && $('#docCanvas').clientWidth) {
+    state.zoom = fitZoom();
+    setScale();
+    // A vertical scrollbar can appear once the sheet is taller than the canvas; refit to the narrower width
+    const z = fitZoom();
+    if (z !== state.zoom) { state.zoom = z; setScale(); }
+    return;
+  }
+  setScale();
+}
+
+/* ---------- Receipt preview panel ---------- */
+function setPreviewOpen(open) {
+  state.previewOpen = open;
+  $('#panel-ai').dataset.preview = open ? 'open' : 'closed';
+  syncPreviewToggle();
+  $('#closeDoc').setAttribute('aria-expanded', open);
+  $('#openPreview').setAttribute('aria-expanded', open);
+  if (open) applyZoom();   // the canvas has a width again, so fit the receipt to it
+}
+// "Show receipt preview" only makes sense on the AI tab, and only while the preview is closed
+function syncPreviewToggle() {
+  $('#openPreview').hidden = state.previewOpen || $('#panel-ai').hidden;
+}
+
+/* ---------- Claims: open one, or list them all ---------- */
+// Sections 01 and 02, in the Figma's order. `cls` adds the divider rule and column span.
+const BASIC_LAYOUT = [
+  ['payTo', 'Pay to (vendor/employee)'], ['claimType', 'Claim type'], ['invNo', 'Invoice/receipt number'], ['invDate', 'Invoice/receipt date'],
+  ['description', 'Description', 'rule span-4'], ['paymentTerms', 'Payment terms', 'rule'], ['paymentMethod', 'Payment method', 'rule'],
+  ['houseBank', 'House bank', 'rule'], ['advance', 'Advance number', 'rule'],
+];
+const OFFICER_LAYOUT = [
+  ['supporting', 'Supporting officer (opt.)'], ['approving', 'Approving officer'], ['proxies', 'Proxy officers (opt.)'], ['proxyGroup', 'Proxy group'],
+];
+const fieldHtml = (label, value, cls = '', extra = '') =>
+  `<div class="field ${cls}"><span class="f-label">${esc(label)}</span><span class="f-value">${esc(orDash(value))}${extra}</span></div>`;
+
+// Review progress is kept per claim, so switching claims and back doesn't lose it
+const CLAIM_KEYS = ['activeItem', 'activeFile', 'openCheck', 'filter', 'resolvedFlags', 'resolvedChecks', 'comments'];
+const claimStates = {};
+const freshClaimState = c => ({ ...c.start, filter: 'all', resolvedFlags: new Set(), resolvedChecks: new Set(), comments: {} });
+const progressOf = c => c === currentClaim ? state : (claimStates[c.id] || freshClaimState(c));
+const claimIssues = c => c.items.reduce((n, it) => n + openIssues(it, progressOf(c)), 0);
+
+function saveProgress() {
+  if (currentClaim) claimStates[currentClaim.id] = Object.fromEntries(CLAIM_KEYS.map(k => [k, state[k]]));
+}
+function loadClaim(id) {
+  if (currentClaim?.id === id) return;
+  saveProgress();
+  const next = CLAIMS.find(c => c.id === id);
+  Object.assign(state, claimStates[next.id] || freshClaimState(next));
+  currentClaim = next;
+  FILES = currentClaim.files;
+  ITEMS = currentClaim.items;
+  state.rerunning = false;
+}
+function renderClaim() {
+  const c = currentClaim;
+  $('#pageTitle').textContent = c.id;
+  $('#basicFields').innerHTML = BASIC_LAYOUT.map(([k, label, cls]) =>
+    fieldHtml(label, c.basic[k], cls, k === 'invDate' ? ` ${ico('calendar')}` : '')).join('');
+  $('#officerFields').innerHTML = OFFICER_LAYOUT.map(([k, label]) => fieldHtml(label, c.officers[k])).join('');
+  $('#itemsTitle').textContent = `Line Items (${c.items.length})`;
+  $('#totalPill').textContent = c.total.pill;
+  $('#proofTitle').textContent = `Proof of Purchase (${c.files.filter(f => f.group === 'proof').length})`;
+  $('#bannerLabel').textContent = c.total.label;
+  $('#bannerTotal').textContent = c.total.amount;
+  $('#bannerSplit').innerHTML = c.total.lines.map(([label, value]) => `${esc(label)}: <code>${esc(value)}</code>`).join('<br>');
+  renderItems(); renderFiles(); renderViewer();
+  $('.col-left').scrollTop = 0;
+}
+
+function renderTasks() {
+  $('#tasksBody').innerHTML = CLAIMS.map(c => {
+    const n = claimIssues(c);
+    const issues = n
+      ? `<span class="ai-dot warn">${ico('alert')}${n} issue${n > 1 ? 's' : ''} to review</span>`
+      : `<span class="ai-dot">${ico('check-circle')}No open issues</span>`;
+    return `<tr data-claim-row="${esc(c.id)}">
+      <td><a class="task-link" href="#claim/${encodeURIComponent(c.id)}">${esc(c.id)}</a></td>
+      <td>${esc(c.basic.payTo)}</td>
+      <td>${esc(c.basic.claimType)}</td>
+      <td class="r amount">${esc(c.total.amount)}</td>
+      <td>${issues}</td>
+      <td class="r chev">${ico('chev-right')}</td>
+    </tr>`;
+  }).join('');
+}
+
+// #tasks shows the list; #claim/<number> opens a claim; no hash opens the first claim
+function route() {
+  const m = location.hash.match(/^#claim\/(.+)$/);
+  const id = m && decodeURIComponent(m[1]);
+  if (location.hash === '#tasks') {
+    $('#main').dataset.view = 'tasks';
+    $('#tasksView').hidden = false;
+    $('#pageTitle').textContent = 'Checking tasks';
+    renderTasks();
+  } else {
+    $('#main').dataset.view = 'claim';
+    $('#tasksView').hidden = true;
+    loadClaim(CLAIMS.some(c => c.id === id) ? id : CLAIMS[0].id);
+    renderClaim();
+    syncPreviewToggle();
+  }
 }
 
 /* ---------- Decision bar ---------- */
@@ -1112,7 +1508,9 @@ document.addEventListener('click', e => {
 
   if (t.dataset.showFile) {
     state.activeFile = t.dataset.showFile;
-    renderFiles(); renderViewer();
+    renderFiles();
+    if (!state.previewOpen) setPreviewOpen(true);   // picking a file brings the preview back
+    renderViewer();
     if ('scrollAttachments' in t.dataset) $('#attachments').scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (window.innerWidth <= 860) document.querySelector('.viewer').scrollIntoView({ behavior: 'smooth' });
     return;
@@ -1123,6 +1521,8 @@ document.addEventListener('click', e => {
 document.querySelectorAll('[role="tab"]').forEach(tab => tab.addEventListener('click', () => {
   document.querySelectorAll('[role="tab"]').forEach(x => x.setAttribute('aria-selected', x === tab));
   document.querySelectorAll('[role="tabpanel"]').forEach(p => p.hidden = p.id !== tab.getAttribute('aria-controls'));
+  syncPreviewToggle();
+  applyZoom();   // back on the AI tab, refit the receipt to the panel
 }));
 
 // Sidebar
@@ -1143,13 +1543,13 @@ document.querySelectorAll('.role').forEach(b => b.addEventListener('click', () =
 }));
 
 // Viewer controls
-$('#zoomIn').addEventListener('click', () => { state.zoom = Math.min(150, state.zoom + 10); applyZoom(); });
-$('#zoomOut').addEventListener('click', () => { state.zoom = Math.max(30, state.zoom - 10); applyZoom(); });
-$('#zoomFit').addEventListener('click', () => {
-  const avail = $('#docCanvas').clientWidth - 32;
-  state.zoom = Math.round(53 * avail / 478); applyZoom();
-});
-$('#closeDoc').addEventListener('click', () => { state.activeFile = null; renderFiles(); renderViewer(); });
+$('#zoomIn').addEventListener('click', () => { state.zoomFit = false; state.zoom = Math.min(150, state.zoom + 10); applyZoom(); });
+$('#zoomOut').addEventListener('click', () => { state.zoomFit = false; state.zoom = Math.max(30, state.zoom - 10); applyZoom(); });
+$('#zoomFit').addEventListener('click', () => { state.zoomFit = true; applyZoom(); });
+
+// Close and reopen the whole preview panel (total banner + document viewer)
+$('#closeDoc').addEventListener('click', () => { setPreviewOpen(false); $('#openPreview').focus(); });
+$('#openPreview').addEventListener('click', () => { setPreviewOpen(true); $('#closeDoc').focus(); });
 
 // Decisions
 $('#verifyBtn').addEventListener('click', () => {
@@ -1178,10 +1578,16 @@ document.addEventListener('keydown', e => {
 });
 window.addEventListener('resize', applyZoom);
 
+// Checking tasks list and Go back
+$('#goBack').addEventListener('click', () => { location.hash = '#tasks'; });
+$('#tasksBody').addEventListener('click', e => {
+  const row = e.target.closest('[data-claim-row]');
+  if (row && !e.target.closest('a')) location.hash = `#claim/${encodeURIComponent(row.dataset.claimRow)}`;
+});
+window.addEventListener('hashchange', () => { route(); $('#pageTitle').focus({ preventScroll: true }); });
+
 /* ---------- Init ---------- */
-renderItems();
-renderFiles();
-renderViewer();
+route();
 </script>
 </body>
 </html>
