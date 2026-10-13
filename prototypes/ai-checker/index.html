@@ -99,8 +99,12 @@
      and only the form column (and the document canvas) scroll in between. */
   .main { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
   .page-head, .tabs-row { flex: none; }
-  .page-head { padding: 17px 20px 7px; }
-  .page-head h1 { margin: 0; font-size: 30px; line-height: 36px; font-weight: 400; color: #000; }
+  .page-head { padding: 12px 24px 8px 20px; display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; }
+  .page-head h1 { flex: none; margin: 0; font-size: 30px; line-height: 36px; font-weight: 400; color: #000; }
+  /* The banner shrinks before it wraps under the title: its breakdown text wraps first */
+  .page-head .total-banner { flex: 0 1 auto; min-width: 0; margin-left: auto; }
+  .page-head .total-banner .split { min-width: 0; }
+  .main[data-view="tasks"] .page-head .total-banner { display: none; }   /* the list has no single claim total */
   /* The tabs row also holds "Show receipt preview" at its right end, while the preview is closed */
   .tabs-row { display: flex; align-items: stretch; gap: 16px; margin: 0 24px 0 20px; border-bottom: 1px solid var(--nav-border); }
   .tabs { flex: 1; min-width: 0; display: flex; gap: 24px; padding: 0 16px; }
@@ -328,7 +332,7 @@
   .file-end { color: var(--slate-400); display: inline-flex; }
 
   /* ---------- Document viewer (right) ---------- */
-  .viewer { display: flex; flex-direction: column; gap: 28px; min-width: 0; min-height: 0; padding: 20px 0 24px; }
+  .viewer { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 20px 0 24px; }
   .total-banner { flex: none; }
   .total-banner { background: var(--brand); border-radius: 6px; padding: 8px 16px; display: flex; align-items: center; gap: 16px; color: #fff; box-shadow: 0 1px 1px rgba(0,0,0,.05); }
   .total-banner .big { border-right: 1px solid rgba(15,118,110,.8); padding-right: 17px; }
@@ -432,6 +436,10 @@
     .item-open .side-by-side { grid-template-rows: none; grid-auto-rows: max-content; overflow-y: auto; overscroll-behavior: contain; }
     .item-open .claim-side, .item-open .ai-side { overflow: visible; min-height: auto; }
   }
+  @media (max-width: 560px) {
+    .page-head { flex-wrap: wrap; }
+    .page-head .total-banner { margin-left: 0; }
+  }
   @media (max-width: 860px) {
     .app, .app[data-sidebar="collapsed"] { grid-template-columns: 1fr; }
     .sidebar { display: none; }
@@ -442,6 +450,7 @@
     .col-left { overflow: visible; padding: 0; }
     .viewer { padding: 0; }
     .item-open { max-height: none; }   /* the page scrolls here, so no inner scroll areas */
+    .page-head { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; background: #fff; }   /* keep the total in view as the page scrolls */
     .item-open .side-by-side { overflow: visible; }
     .doc-canvas { flex: none; height: min(852px, calc(100vh - 220px)); min-height: 420px; }
     .tabs-row { margin: 0 16px; }
@@ -538,7 +547,15 @@
 
   <!-- ===== Main ===== -->
   <div class="main" id="main" data-view="claim">
-    <header class="page-head"><h1 id="pageTitle" tabindex="-1">DIP2025171622</h1></header>
+    <header class="page-head">
+      <h1 id="pageTitle" tabindex="-1">DIP2025171622</h1>
+      <!-- The claim's total sits beside its number, so it stays in view while the form scrolls
+           and whether or not the receipt preview is open -->
+      <div class="total-banner" role="group" aria-label="Claim total">
+        <div class="big"><span id="bannerLabel">Total claim amount</span><b id="bannerTotal"></b></div>
+        <div class="split" id="bannerSplit"></div>
+      </div>
+    </header>
 
     <!-- ===== Checking tasks: the list of claims to check (#tasks) ===== -->
     <section class="tasks" id="tasksView" aria-labelledby="pageTitle" hidden>
@@ -613,10 +630,6 @@
 
       <!-- ===== Document viewer ===== -->
       <aside class="viewer" id="viewer" aria-label="Document viewer">
-        <div class="total-banner">
-          <div class="big"><span id="bannerLabel">Total claim amount</span><b id="bannerTotal"></b></div>
-          <div class="split" id="bannerSplit"></div>
-        </div>
         <div class="doc">
           <div class="doc-tab">
             <div class="name"><span class="pdf">PDF</span><span id="docName"></span></div>
