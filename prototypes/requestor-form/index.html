@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ezPay · New claim request (Requestor view)</title>
+<!--
+  No Figma design for this screen: it's based on the AI Checker prototype
+  (../ai-checker/index.html) and uses the same shell, sidebar and tokens.
+  Prototype only: all data is mock data, nothing is sent or uploaded anywhere.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Brand (from the ezPay shell) */
+    --brand: #26a69a;
+    --brand-dark: #00897b;
+    --action: #0b8e76;
+    --danger: #d7260f;
+
+    /* Teal (AI checker accents) */
+    --teal-900: #042f2e; --teal-800: #115e59; --teal-700: #0f766e; --teal-600: #0d9488;
+    --teal-500: #14b8a6; --teal-300: #5eead4; --teal-200: #99f6e4; --teal-100: #ccfbf1; --teal-50: #f0fdfa;
+
+    /* Slate (text, borders, surfaces) */
+    --slate-900: #0f172a; --slate-800: #1e293b; --slate-700: #334155; --slate-600: #475569;
+    --slate-500: #64748b; --slate-400: #94a3b8; --slate-300: #cbd5e1; --slate-200: #e2e8f0;
+    --slate-100: #f1f5f9; --slate-50: #f8fafc;
+
+    /* Status */
+    --amber-900: #78350f; --amber-800: #92400e; --amber-700: #b45309; --amber-500: #f59e0b;
+    --amber-300: #fcd34d; --amber-200: #fde68a; --amber-100: #fef3c7; --amber-50: #fffbeb;
+    --red-800: #991b1b; --red-700: #b91c1c; --red-600: #dc2626; --red-200: #fecaca;
+    --red-100: #fee2e2; --red-50: #fef2f2;
+    --green-800: #065f46; --green-500: #10b981; --green-400: #34d399; --green-100: #d1fae5; --green-50: #ecfdf5;
+    --purple-800: #6b21a8; --purple-100: #f3e8ff;
+
+    /* Sidebar (d-Side menu component) */
+    --nav-border: #cdd5de; --nav-text: #0e1114; --nav-section: #8fa0af; --nav-active-bg: #e0f0ef;
+
+    --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --radius-sm: 4px; --radius: 8px;
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.05);
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; } /* so `hidden` beats any display rule below */
+  html, body { margin: 0; height: 100%; }
+  body { font-family: var(--font); color: var(--slate-800); background: #fff; font-size: 12px; line-height: 16px; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  :focus-visible { outline: 2px solid var(--teal-500); outline-offset: 2px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+  /* ---------- App shell (same as the AI checker) ---------- */
+  .app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; height: 100dvh; transition: grid-template-columns .2s ease; }
+  .app[data-sidebar="collapsed"] { grid-template-columns: 64px 1fr; }
+
+  .sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; background: #fff; border-right: 1px solid var(--nav-border); box-shadow: 6px 0 16px rgba(2,17,37,.04); overflow: hidden; z-index: 5; }
+  .brand { background: var(--brand); height: 64px; display: flex; align-items: center; justify-content: center; gap: 6px; flex: none; }
+  .brand-word { color: #fff; font-weight: 700; font-size: 30px; line-height: 20px; }
+  .brand-chip { background: #f5f5f5; color: var(--brand); font-size: 20px; line-height: 20px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 6px; }
+  .role-switch { margin: 11px; background: #eef1f4; border-radius: 4px; padding: 5px 9px; display: flex; align-items: center; gap: 22px; flex: none; }
+  .role { border: 0; background: transparent; font-size: 24px; line-height: 20px; font-weight: 500; color: rgba(97,108,118,.49); padding: 7px 9px; border-radius: 4px; }
+  .role[aria-pressed="true"] { background: var(--brand); color: #fff; font-weight: 700; box-shadow: 0 4px 2px rgba(0,0,0,.1); }
+
+  .nav { flex: 1; overflow-y: auto; padding-top: 12px; border-top: 1px solid var(--nav-border); }
+  .nav-section { color: var(--nav-section); font-size: 12px; font-weight: 500; line-height: 20px; padding: 1px 16px; }
+  .nav-link { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 16px; border: 0; background: transparent; text-align: left; font-size: 14px; line-height: 20px; color: var(--nav-text); text-decoration: none; }
+  .nav-link svg.i { width: 20px; height: 20px; stroke-width: 1.6; }
+  .nav-link:hover { background: var(--slate-50); }
+  .nav-link[aria-current="page"] { background: var(--nav-active-bg); color: var(--brand); font-weight: 700; }
+  .nav-link[aria-current="page"]::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--brand); border-radius: 0 4px 4px 0; }
+  .nav-sub { padding-left: 40px; }
+  .nav-caret { margin-left: auto; transition: transform .15s; }
+  .nav-link[aria-expanded="false"] .nav-caret { transform: rotate(180deg); }
+  .nav-divider { height: 1px; background: var(--nav-border); margin: 10px 0 10px 3px; }
+  .nav-me { display: flex; gap: 8px; align-items: center; padding: 10px 16px; }
+  .nav-me b { display: block; font-weight: 500; font-size: 14px; line-height: 14px; margin-bottom: 4px; color: #09090b; }
+  .nav-me span { color: #71717a; font-size: 14px; line-height: 14px; }
+  .collapse-btn { flex: none; display: flex; align-items: center; justify-content: space-between; border: 0; border-top: 1px solid var(--nav-border); background: #fff; padding: 6px 10px 6px 15px; font-size: 12px; line-height: 20px; color: #000; }
+  .collapse-btn svg.i { width: 20px; height: 20px; transition: transform .2s; }
+  .app[data-sidebar="collapsed"] .label,
+  .app[data-sidebar="collapsed"] .nav-section,
+  .app[data-sidebar="collapsed"] .nav-sub,
+  .app[data-sidebar="collapsed"] .nav-caret,
+  .app[data-sidebar="collapsed"] .role-switch,
+  .app[data-sidebar="collapsed"] .brand-chip,
+  .app[data-sidebar="collapsed"] .nav-me div { display: none; }
+  .app[data-sidebar="collapsed"] .brand-word { font-size: 18px; }
+  .app[data-sidebar="collapsed"] .collapse-btn { justify-content: center; }
+  .app[data-sidebar="collapsed"] .collapse-btn svg.i { transform: rotate(180deg); }
+
+  /* ---------- Main ---------- */
+  /* Main is locked to the viewport: page head on top, action bar at the bottom,
+     and only the form column (and the summary panel, if it's taller) scroll in between. */
+  .main { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .page-head { flex: none; margin: 0 20px; padding: 17px 0 12px; border-bottom: 1px solid var(--nav-border); }
+  .page-head h1 { margin: 0; font-size: 30px; line-height: 36px; font-weight: 400; color: #000; }
+  .page-head p { margin: 4px 0 0; color: var(--slate-500); font-size: 13px; line-height: 18px; }
+
+  .content { flex: 1; min-height: 0; margin: 0; padding: 0 24px 0 20px; display: grid; grid-template-columns: minmax(0, 1fr) clamp(320px, 40%, 512px); gap: 20px; }
+  /* Small inline padding keeps focus outlines and card shadows from being clipped by the scroll box */
+  .col-left { display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 0; overflow-y: auto; padding: 20px 8px 24px 4px; }
+  .col-left > * { flex-shrink: 0; } /* don't let cards squash to fit the scroll box */
+  /* Keep absolutely positioned .sr-only labels inside their scroll box, or they stretch the page */
+  .col-left, .side-panel { position: relative; }
+
+  /* ---------- Stepper ---------- */
+  .stepper { list-style: none; margin: 14px 0 0; padding: 0; display: flex; align-items: center; gap: 12px; }
+  .stepper li { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; min-width: 0; }
+  .stepper li:last-child { flex: 0 1 auto; }
+  .stepper li:not(:last-child)::after { content: ""; flex: 1; min-width: 16px; height: 1px; background: var(--slate-300); }
+  .stepper li.done::after { background: var(--teal-500); }
+  .step { display: flex; align-items: center; gap: 8px; border: 0; background: none; padding: 4px 8px 4px 0; border-radius: 4px; text-align: left; color: var(--slate-500); min-width: 0; }
+  .step:hover:not([aria-current]) b { text-decoration: underline; }
+  .step .dot { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--slate-300); background: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+  .step .dot svg.i { width: 14px; height: 14px; stroke-width: 2.5; }
+  .step b { display: block; font-size: 13px; line-height: 18px; font-weight: 600; white-space: nowrap; }
+  .step small { display: block; font-size: 11px; line-height: 15px; color: var(--slate-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .step[aria-current="step"] { color: var(--slate-900); cursor: default; }
+  .step[aria-current="step"] .dot { background: var(--teal-700); border-color: var(--teal-700); color: #fff; }
+  .step.done { color: var(--slate-700); }
+  .step.done .dot { background: var(--teal-100); border-color: var(--teal-500); color: var(--teal-700); }
+  .step-panel { display: flex; flex-direction: column; gap: 20px; }
+  .step-panel > * { flex-shrink: 0; }
+  .card-intro { margin: 0; padding: 14px 16px 0; color: var(--slate-600); font-size: 12px; line-height: 18px; }
+
+  /* ---------- Review (laid out like the AI checker's claim view) ---------- */
+  #review { display: flex; flex-direction: column; gap: 20px; }
+  .rv-intro { margin: 0; color: var(--slate-600); font-size: 13px; line-height: 19px; }
+  .rv-edit { font-size: 12px; }
+  /* Read-only fields: label over value, rows split by a light rule, as in the checker */
+  .rv-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 16px; }
+  .rv-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .rv-field.rule { border-top: 1px solid var(--slate-100); padding-top: 13px; }
+  .rv-field.span-4 { grid-column: 1 / -1; }
+  .f-value { color: var(--slate-800); font-weight: 500; overflow-wrap: anywhere; }
+  .f-value.empty { color: var(--slate-400); font-weight: 400; }
+
+  /* Collapsed line item */
+  .item-summary { width: 100%; text-align: left; display: grid; grid-template-columns: 24px minmax(0, 1.6fr) minmax(0, 1.2fr) auto; gap: 16px; align-items: center; padding: 17px; background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); box-shadow: 0 1px 1px rgba(0,0,0,.05); transition: border-color .15s; }
+  .item-summary:hover { border-color: var(--teal-300); }
+  .item-summary .num { text-align: center; font-weight: 700; color: var(--slate-400); }
+  .item-summary .what { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+  .item-summary .coding { color: var(--slate-500); font-size: 11px; line-height: 15px; overflow-wrap: anywhere; }
+  .item-summary .amounts { text-align: right; white-space: nowrap; color: var(--slate-400); font-size: 11px; }
+  .item-summary .amounts b { display: block; color: var(--slate-800); font-size: 14px; line-height: 20px; white-space: nowrap; }
+  .chip { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 4px; background: var(--slate-100); color: var(--slate-600); }
+  .item-title { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--slate-800); }
+  .rv-receipt { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--green-800); }
+  .rv-receipt.none { color: var(--amber-800); }
+  .rv-receipt svg.i { width: 12px; height: 12px; }
+
+  /* Expanded line item */
+  .item-open { border: 2px solid var(--teal-300); border-radius: var(--radius); overflow: hidden; background: #fff; }
+  .item-close { border: 0; background: none; color: var(--slate-500); padding: 4px; border-radius: 4px; display: inline-flex; }
+  .item-close:hover { background: var(--teal-100); }
+  .rv-open-body { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; background: rgba(248,250,252,.4); }
+  .rv-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .box { background: #fff; border: 1px solid var(--slate-200); border-radius: 4px; }
+  .amount-box { padding: 13px; display: flex; flex-direction: column; gap: 8px; }
+  .amount-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .amount-row span { color: var(--slate-500); font-weight: 500; }
+  .amount-row b { font-size: 16px; line-height: 24px; color: var(--slate-900); white-space: nowrap; }
+  .amount-split { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; border-top: 1px solid var(--slate-100); padding-top: 5px; font-size: 11px; line-height: 16.5px; }
+  .amount-split span { display: block; color: var(--slate-400); }
+  .amount-split b { color: var(--slate-700); font-weight: 600; }
+  .desc-box { padding: 9px; font-weight: 500; line-height: 19.5px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .coding-box { padding: 11px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; }
+  .coding-box div { display: flex; justify-content: space-between; gap: 12px; }
+  .coding-box span { color: var(--slate-400); flex: none; }
+  .coding-box b { font-weight: 500; text-align: right; }
+  .coding-box b.empty { color: var(--slate-400); font-weight: 400; }
+  .rv-file-btn { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px; background: rgba(248,250,252,.5); border: 1px solid var(--slate-200); border-radius: 4px; text-align: left; }
+  .rv-file-btn:hover { border-color: var(--teal-300); }
+  .rv-file-btn[aria-pressed="true"] { background: rgba(240,253,250,.5); border: 2px solid var(--teal-500); padding: 8px; }
+  .rv-file-btn .file-end { color: var(--slate-400); display: inline-flex; }
+  .rv-file-btn[aria-pressed="true"] .file-end { color: var(--teal-700); }
+  .rv-none { color: var(--slate-400); font-size: 12px; }
+
+  /* ---------- Section cards ---------- */
+  .card { background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); box-shadow: var(--shadow-xs); overflow: hidden; scroll-margin-top: 16px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px 11px; background: rgba(248,250,252,.8); border-bottom: 1px solid var(--slate-200); }
+  .sec-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; line-height: 18px; font-weight: 700; color: var(--slate-700); }
+  .sec-num { background: var(--teal-100); color: var(--teal-700); font-weight: 700; font-size: 12px; padding: 2px 6px; border-radius: 4px; letter-spacing: 0; }
+  .card-meta { color: var(--slate-400); font-weight: 500; }
+  .fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 16px; align-items: start; }
+  /* Each field spans 3 rows (label, control, error) of a subgrid, so inputs in a row line up
+     even when one label wraps onto two lines */
+  .field { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 4px; align-content: start; min-width: 0; }
+  .field .f-label { align-self: end; }
+  .field.span-2 { grid-column: span 2; }
+  .field.span-3 { grid-column: span 3; }
+  .field.span-4 { grid-column: 1 / -1; }
+  .f-label { color: var(--slate-500); font-size: 12px; font-weight: 500; }
+  .f-error { color: var(--red-700); font-size: 11px; line-height: 15px; }
+
+  /* ---------- Form controls ---------- */
+  .input { width: 100%; min-width: 0; height: 32px; border: 1px solid var(--slate-300); border-radius: var(--radius-sm); padding: 0 10px; font: inherit; font-weight: 500; color: var(--slate-800); background: #fff; }
+  .input::placeholder { color: var(--slate-400); font-weight: 400; }
+  .input:hover { border-color: var(--slate-400); }
+  .input:focus-visible { outline-offset: 0; border-color: var(--teal-500); }
+  select.input { padding-right: 4px; }
+  select.input:has(option[value=""]:checked) { color: var(--slate-400); font-weight: 400; }
+  .affix-wrap { display: flex; align-items: stretch; height: 32px; border: 1px solid var(--slate-300); border-radius: var(--radius-sm); background: #fff; }
+  .affix-wrap:hover { border-color: var(--slate-400); }
+  .affix-wrap:focus-within { outline: 2px solid var(--teal-500); border-color: var(--teal-500); }
+  .affix { display: inline-flex; align-items: center; padding: 0 8px; background: var(--slate-50); border-right: 1px solid var(--slate-200); color: var(--slate-500); font-weight: 600; font-size: 11px; border-radius: 3px 0 0 3px; }
+  .affix-wrap .input { border: 0; height: 30px; text-align: right; font-family: var(--mono); }
+  .affix-wrap .input:focus-visible { outline: none; }
+  .field[data-invalid] .input, .field[data-invalid] .affix-wrap { border-color: var(--red-600); }
+  .field[data-invalid] .affix-wrap .input { border: 0; }
+
+  /* ---------- Line items ---------- */
+  .items-head { display: flex; align-items: center; justify-content: space-between; padding-top: 4px; scroll-margin-top: 16px; }
+  .items-head .sec-title { font-size: 14px; line-height: 20px; color: var(--slate-800); }
+  .total-pill { background: rgba(15,118,110,.1); border: 1px solid rgba(13,148,136,.2); color: var(--teal-700); font-weight: 700; padding: 5px 11px; border-radius: 4px; }
+  .items { display: flex; flex-direction: column; gap: 20px; }
+  .line { border: 1px solid var(--slate-200); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow-xs); overflow: hidden; scroll-margin-top: 16px; }
+  .line-strip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px 11px; background: rgba(240,253,250,.9); border-bottom: 1px solid var(--teal-200); flex-wrap: wrap; }
+  .strip-left, .strip-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .strip-num { background: var(--teal-700); color: #fff; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+  .strip-title { margin: 0; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--slate-800); }
+  .tag-teal { background: var(--teal-100); color: var(--teal-700); font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 4px; }
+  .line-total { font-weight: 700; color: var(--slate-800); font-size: 14px; line-height: 20px; }
+  .line-total.empty { color: var(--slate-400); font-weight: 500; font-size: 12px; }
+  .btn-remove { border: 0; background: none; color: var(--red-700); font-weight: 500; display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 4px; }
+  .btn-remove:hover { background: var(--red-50); }
+  .btn-remove svg.i { width: 14px; height: 14px; }
+  .group + .group { border-top: 1px solid var(--slate-100); }
+  .group-title { margin: 0; padding: 14px 16px 0; color: var(--slate-700); font-size: 12px; font-weight: 700; }
+  .group-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 16px 0; flex-wrap: wrap; }
+  .group-head .group-title { padding: 4px 0 0; }
+  .tpl-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tpl-actions select.input { width: auto; max-width: 220px; height: 28px; font-size: 11px; }
+  .tpl-actions .link-btn { font-size: 11px; }
+  .tpl-values { margin: 0; padding: 9px 11px; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 4px; font-size: 11px; line-height: 16px; }
+  .tpl-values dt { color: var(--slate-500); }
+  .tpl-values dd { margin: 0; color: var(--slate-800); font-weight: 500; }
+  .group .fields { padding-top: 10px; }
+  .gst-note { grid-column: 1 / -1; margin: -4px 0 0; color: var(--slate-500); font-size: 11px; }
+  .add-item { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; border: 1px dashed var(--teal-500); background: var(--teal-50); color: var(--teal-700); font-weight: 600; border-radius: var(--radius-sm); padding: 8px 14px; }
+  .add-item:hover { background: var(--teal-100); }
+
+  /* Compact line rows: every line item except the open one (step 1 and the review) */
+  .items { gap: 8px; }
+  .items > .line, .items > .item-open { margin: 8px 0; }
+  .items > :first-child { margin-top: 0; }
+  .line-row { width: 100%; display: grid; grid-template-columns: 24px minmax(0, 1fr) auto auto 16px; gap: 12px; align-items: center; padding: 10px 14px; background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); box-shadow: 0 1px 1px rgba(0,0,0,.05); text-align: left; transition: border-color .15s; }
+  .line-row:hover { border-color: var(--teal-300); }
+  .line-row .num { text-align: center; font-weight: 700; color: var(--slate-400); }
+  .lr-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .lr-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .lr-top .chip { flex: none; }
+  .lr-desc { font-weight: 600; color: var(--slate-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .lr-sub { font-size: 11px; line-height: 15px; color: var(--slate-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lr-status { font-size: 11px; line-height: 16px; font-weight: 600; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+  .lr-status.missing { background: var(--amber-100); color: var(--amber-800); }
+  .lr-status.missing.err { background: var(--red-100); color: var(--red-800); }
+  .lr-status.ai { background: var(--purple-100); color: var(--purple-800); }
+  .lr-status.ok { background: var(--green-100); color: var(--green-800); }
+  .lr-amount { font-weight: 700; color: var(--slate-800); white-space: nowrap; text-align: right; min-width: 96px; }
+  .lr-amount.empty { color: var(--slate-400); font-weight: 500; }
+  .lr-chev { color: var(--slate-400); }
+  .line-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--slate-100); }
+  .line-foot .btn-outline { display: inline-flex; align-items: center; gap: 4px; padding: 7px 12px 7px 14px; }
+  .line-foot .btn-plain { padding: 7px 14px; }
+
+  /* Search and filters above the line list (from 4 line items) */
+  .line-tools { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; }
+  .lt-search { position: relative; flex: 1 1 220px; max-width: 320px; }
+  .lt-search svg.i { position: absolute; left: 9px; top: 8px; width: 15px; height: 15px; color: var(--slate-400); pointer-events: none; }
+  .lt-search .input { padding-left: 30px; }
+  .filters { display: flex; gap: 4px; flex-wrap: wrap; }
+  .filter { border: 1px solid transparent; background: transparent; color: var(--slate-600); font-size: 12px; line-height: 16px; padding: 5px 10px; border-radius: 4px; }
+  .filter:hover { background: var(--slate-50); }
+  .filter[aria-pressed="true"] { background: var(--teal-50); border-color: var(--teal-300); color: var(--teal-800); font-weight: 600; }
+  .filter .cnt { color: var(--slate-400); font-weight: 500; margin-left: 2px; }
+  .lt-count { margin-left: auto; color: var(--slate-500); font-size: 12px; }
+  .lt-empty { margin: 0; padding: 16px; border: 1px dashed var(--slate-300); border-radius: var(--radius); color: var(--slate-600); text-align: center; }
+
+  /* ---------- Attachments ---------- */
+  .attachments { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .att-box { padding: 13px; display: flex; flex-direction: column; gap: 8px; }
+  .att-box h3 { margin: 0; padding-bottom: 9px; border-bottom: 1px solid var(--slate-100); display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--slate-800); }
+  .att-box h3 svg.i { color: var(--teal-600); }
+  .att-box h3 .card-meta { margin-left: auto; font-weight: 500; }
+  .dropzone { border: 1px dashed var(--slate-300); border-radius: var(--radius-sm); background: var(--slate-50); padding: 16px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; color: var(--slate-500); transition: background .15s, border-color .15s; }
+  .dropzone svg.i { width: 20px; height: 20px; color: var(--teal-600); }
+  .dropzone.over { background: var(--teal-50); border-color: var(--teal-500); }
+  .att-box[data-invalid] .dropzone { border-color: var(--red-600); background: var(--red-50); }
+  .link-btn { border: 0; background: none; padding: 0; color: var(--teal-600); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .link-btn:hover { text-decoration: underline; }
+  .file-list { display: flex; flex-direction: column; gap: 8px; }
+  .file { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px; background: rgba(248,250,252,.5); border: 1px solid var(--slate-200); border-radius: 4px; }
+  .file-start { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .file-start > span:last-child { min-width: 0; }
+  .pdf { background: var(--red-100); color: var(--red-700); font-size: 9px; line-height: 13.5px; font-weight: 700; padding: 0 4px; border-radius: 4px; flex: none; text-transform: uppercase; }
+  .file-name { font-weight: 600; color: var(--slate-800); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-sub { font-size: 10px; line-height: 15px; color: var(--slate-400); display: block; }
+  .icon-btn { border: 0; background: none; padding: 4px; color: var(--slate-500); border-radius: 4px; display: inline-flex; flex: none; }
+  .icon-btn:hover { background: rgba(0,0,0,.06); color: var(--red-700); }
+  .icon-btn svg.i { width: 14px; height: 14px; }
+  .file-actions { display: flex; align-items: center; gap: 4px; flex: none; }
+  .file-actions .link-btn { font-size: 11px; padding: 4px; }
+  .file-sub .linked { color: var(--teal-700); font-weight: 500; }
+  .file-sub .reading { color: var(--purple-800); font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+  .file-sub .reading svg.i { width: 11px; height: 11px; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- AI extraction ---------- */
+  .switch { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 4px 6px; border-radius: 4px; color: var(--slate-500); font-weight: 600; font-size: 12px; }
+  .switch:hover { background: var(--slate-50); }
+  .switch svg.i { width: 14px; height: 14px; }
+  .switch[aria-checked="true"] { color: var(--purple-800); }
+  .switch .track { position: relative; width: 30px; height: 17px; margin-left: 2px; border-radius: 9px; background: var(--slate-300); transition: background .15s; }
+  .switch .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: #fff; box-shadow: var(--shadow-xs); transition: transform .15s; }
+  .switch[aria-checked="true"] .track { background: var(--purple-800); }
+  .switch[aria-checked="true"] .track::after { transform: translateX(13px); }
+  .sec-note { margin: -12px 0 0; color: var(--slate-500); font-size: 11px; line-height: 16px; }
+  .ai-tag { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; background: var(--purple-100); color: var(--purple-800); font-size: 9px; line-height: 13px; font-weight: 700; letter-spacing: .3px; padding: 0 5px; border-radius: 4px; vertical-align: 1px; }
+  .ai-tag svg.i { width: 10px; height: 10px; }
+
+  /* ---------- Summary panel (right) ---------- */
+  .side-panel { display: flex; flex-direction: column; gap: 20px; min-width: 0; min-height: 0; overflow-y: auto; padding: 20px 2px 24px; container-type: inline-size; }
+  @container (max-width: 360px) { .side-panel .total-banner .big { border-right: 0; padding-right: 0; } }
+  .side-panel > * { flex-shrink: 0; }
+
+  /* Receipt viewer: same look as the AI checker's document viewer; fills the panel's height */
+  .doc { flex: 1 1 auto; min-height: 320px; display: flex; flex-direction: column; border-radius: 4px; overflow: hidden; border: 1px solid var(--slate-200); }
+  .doc-tab { flex: none; background: var(--slate-100); border-bottom: 1px solid var(--slate-200); padding: 8px 12px 9px; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 37px; }
+  .doc-tab .name { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 700; color: var(--slate-700); }
+  .doc-tab .name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .doc-tab .pdf { background: var(--red-600); color: #fff; line-height: 16px; }
+  .doc-tab .icon-btn:hover { color: var(--slate-800); }
+  .doc-toolbar { flex: none; background: #2b3648; color: var(--slate-300); padding: 6px 12px; min-height: 30px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; }
+  .doc-for { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .doc-for b { color: #fff; font-weight: 600; }
+  .doc-toolbar .zoom { display: flex; align-items: center; gap: 8px; flex: none; }
+  .doc-toolbar .zoom button { border: 0; background: none; color: var(--slate-300); font-weight: 700; font-size: 14px; line-height: 14px; padding: 0 4px; }
+  .doc-toolbar .zoom button:hover { color: #fff; }
+  .doc-toolbar .icon-btn { padding: 0 0 0 4px; }
+  .doc-canvas { flex: 1; min-height: 0; background: #525659; overflow: auto; padding: 16px; display: flex; }
+  .doc-canvas img { display: block; margin: 0 auto; align-self: flex-start; max-width: none; background: #fff; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 8px 10px -6px rgba(0,0,0,.1); }
+  .doc-canvas iframe { flex: 1; width: 100%; border: 0; background: #fff; }
+  .doc-canvas.has-frame { padding: 0; }
+  .no-preview { margin: auto; max-width: 34ch; text-align: center; color: var(--slate-300); font-size: 12px; line-height: 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .no-preview svg.i { width: 28px; height: 28px; color: var(--slate-400); }
+  .no-preview b { color: #fff; font-weight: 600; }
+  .no-preview .link-btn { color: var(--teal-300); }
+  .doc-reading { flex: none; display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--purple-100); color: var(--purple-800); font-size: 11px; font-weight: 600; }
+  .doc-reading svg.i { width: 12px; height: 12px; animation: spin 1s linear infinite; }
+
+  /* The line item the viewer is showing */
+  .line { transition: border-color .15s, box-shadow .15s; }
+  .line.active { border-color: var(--teal-300); box-shadow: 0 0 0 1px var(--teal-300); }
+  .file.viewing { background: rgba(240,253,250,.5); border-color: var(--teal-500); box-shadow: inset 0 0 0 1px var(--teal-500); }
+  .file-open { border: 0; background: none; padding: 0; text-align: left; min-width: 0; flex: 1; }
+  .file-open:hover .file-name { color: var(--teal-700); text-decoration: underline; }
+
+  /* Collapsible checklist under the viewer */
+  .ck-card summary { list-style: none; cursor: pointer; border-bottom: 0; }
+  .ck-card summary::-webkit-details-marker { display: none; }
+  .ck-card[open] summary { border-bottom: 1px solid var(--slate-200); }
+  .ck-progress { display: inline-flex; align-items: center; gap: 6px; color: var(--slate-500); font-weight: 600; }
+  .ck-progress.all { color: var(--green-800); }
+  .ck-card .chev { transition: transform .15s; }
+  .ck-card[open] .chev { transform: rotate(180deg); }
+  .total-banner { background: var(--brand); border-radius: 6px; padding: 8px 16px; display: flex; align-items: center; gap: 16px; color: #fff; box-shadow: 0 1px 1px rgba(0,0,0,.05); flex-wrap: wrap; }
+  .total-banner .big { border-right: 1px solid rgba(15,118,110,.8); padding-right: 17px; }
+  .total-banner .big span { display: block; color: var(--teal-200); font-size: 11px; line-height: 15px; font-weight: 600; }
+  .total-banner .big b { font-size: 20px; line-height: 28px; letter-spacing: -.5px; white-space: nowrap; }
+  .total-banner .split { font-size: 11px; line-height: 17.88px; color: rgba(204,251,241,.9); }
+  .total-banner .split code { font-family: var(--mono); font-weight: 700; color: #fff; }
+  .other-cur { margin: -8px 0 0; padding: 9px 11px; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 4px; color: var(--slate-600); font-size: 11px; line-height: 16.5px; }
+  .other-cur code { font-family: var(--mono); font-weight: 700; color: var(--slate-800); }
+  .checklist { list-style: none; margin: 0; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .ck { width: 100%; border: 0; background: none; display: flex; align-items: flex-start; gap: 10px; padding: 8px; border-radius: 4px; text-align: left; }
+  .ck:hover { background: var(--slate-50); }
+  .ck svg.i { margin-top: 1px; color: var(--slate-300); }
+  .ck.done svg.i { color: var(--green-500); }
+  .ck b { display: block; font-weight: 600; color: var(--slate-800); }
+  .ck.done b { color: var(--slate-500); font-weight: 500; }
+  .ck-sub { display: block; margin-top: 2px; font-size: 11px; line-height: 15px; color: var(--slate-500); }
+
+  /* ---------- Footer / dialogs / toast ---------- */
+  .actionbar { position: sticky; bottom: 0; flex: none; margin-top: auto; background: #fff; border-top: 1px solid var(--slate-200); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 4; }
+  .btn-outline { background: #fff; border: 1px solid var(--action); color: var(--action); border-radius: 4px; padding: 9px 17px; }
+  .btn-outline:hover { background: var(--teal-50); }
+  .btn-verify { background: var(--action); border: 1px solid var(--action); color: #fff; border-radius: 4px; padding: 8px 20px; font-weight: 700; }
+  .btn-verify:hover { background: #087a65; }
+  .btn-reject { background: #fff; border: 1px solid var(--danger); color: var(--danger); border-radius: 4px; padding: 8px 20px; font-weight: 700; }
+  .decisions { display: flex; gap: 10px; align-items: center; }
+  .decision-hint { color: var(--slate-500); margin-right: 8px; }
+  .decision-hint.err { color: var(--red-700); font-weight: 600; }
+
+  dialog { border: 0; border-radius: var(--radius); padding: 0; width: min(440px, calc(100vw - 32px)); box-shadow: 0 20px 25px -5px rgba(0,0,0,.15); }
+  dialog::backdrop { background: rgba(15,23,42,.4); }
+  .dlg { padding: 20px; display: flex; flex-direction: column; gap: 12px; font-size: 13px; line-height: 19px; }
+  .dlg h2 { margin: 0; font-size: 16px; line-height: 22px; color: var(--slate-900); display: flex; align-items: center; gap: 8px; }
+  .dlg h2 svg.i { color: var(--green-500); width: 20px; height: 20px; }
+  .dlg p { margin: 0; color: var(--slate-600); }
+  .dlg code { font-family: var(--mono); font-weight: 700; color: var(--slate-900); }
+  .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; flex-wrap: wrap; }
+  .btn-plain { background: #fff; border: 1px solid var(--slate-300); color: var(--slate-700); border-radius: 4px; padding: 8px 16px; }
+
+  .toast { position: fixed; left: 50%; bottom: 80px; transform: translate(-50%, 12px); background: var(--slate-800); color: #fff; padding: 10px 16px; border-radius: 6px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 20; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1280px) {
+    .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .field.span-3 { grid-column: 1 / -1; }
+    .attachments { grid-template-columns: 1fr; }
+    .step small { display: none; }
+    .rv-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rv-open-body { grid-template-columns: 1fr; }
+    .item-summary { grid-template-columns: 32px 1fr; }
+    .item-summary .what, .item-summary .coding, .item-summary .amounts { grid-column: 2; text-align: left; }
+    /* Line rows: the status chip drops under the description */
+    .line-row { grid-template-columns: 24px minmax(0, 1fr) auto 16px; row-gap: 6px; }
+    .line-row .num { grid-row: span 2; }
+    .lr-status { grid-column: 2; grid-row: 2; justify-self: start; }
+    .lr-amount { grid-column: 3; grid-row: 1; min-width: 0; }
+    .lr-chev { grid-column: 4; grid-row: 1; }
+  }
+  @media (max-width: 860px) {
+    .app, .app[data-sidebar="collapsed"] { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    /* Small screens: back to normal page scrolling, summary stacks under the form */
+    .app { height: auto; min-height: 100vh; }
+    .main { overflow: visible; }
+    .page-head { margin: 0 16px; }
+    .content { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 24px; }
+    .col-left, .side-panel { overflow: visible; padding: 0; }
+    .doc { flex: none; height: min(640px, calc(100vh - 160px)); }
+    .actionbar { padding: 12px 16px; }
+  }
+  @media (max-width: 520px) {
+    .fields, .rv-fields { grid-template-columns: minmax(0, 1fr); }
+    .stepper { gap: 6px; }
+    .stepper li { gap: 6px; }
+    .step b { font-size: 12px; }
+    .field.span-2 { grid-column: auto; }
+    .actionbar { flex-wrap: wrap; }
+    .decision-hint { flex-basis: 100%; margin: 0; }
+    .decisions { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Icon sprite (stand-ins for the Figma icon assets, same set as the AI checker) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></symbol>
+    <symbol id="i-glasses" viewBox="0 0 24 24"><circle cx="6.5" cy="14.5" r="3.5"/><circle cx="17.5" cy="14.5" r="3.5"/><path d="M10 14.5h4M3 14.5 5 7h2M21 14.5 19 7h-2"/></symbol>
+    <symbol id="i-plus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3v18l2.5-1.5L10 21l2-1.5 2 1.5 2.5-1.5L19 21V3l-2.5 1.5L14 3l-2 1.5L10 3 7.5 4.5z"/><path d="M8.5 9h7M8.5 13h7"/></symbol>
+    <symbol id="i-stamp" viewBox="0 0 24 24"><path d="M5 21h14M6 17h12v-3a2 2 0 0 0-2-2h-2l-.5-3.5a3 3 0 1 0-3 0L10 12H8a2 2 0 0 0-2 2z"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h4M14.5 15.5c0-1 2.5-1 2.5-2s-2.5-1-2.5 0"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14"/><path d="M12 17.5h.01"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4z"/><path d="M8 9h8M8 12.5h5"/></symbol>
+    <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.5-1.5 1.7-2 3-2s2.5.5 3 2M14.5 10H18M14.5 13.5H18"/></symbol>
+    <symbol id="i-chev-up" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></symbol>
+    <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6v18h12V7z"/><path d="M14 3v4h4M9 12h6M9 16h4"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.3 2.4 2.4 4.8-5"/></symbol>
+    <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 8.5l5-5 5 5M5 20h14"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><path d="m20 11.5-7.8 7.8a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-chev-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M2 13v2M22 13v2"/></symbol>
+    <symbol id="i-rotate" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7L20 8.5"/><path d="M20 4v4.5h-4.5"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app" data-sidebar="open">
+
+  <!-- ===== Sidebar (d-Side menu, same as the AI checker) ===== -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <span class="brand-word">ezPay</span>
+      <span class="brand-chip">Carrot</span>
+    </div>
+    <div class="role-switch" role="group" aria-label="Workspace">
+      <button class="role" aria-pressed="true">Carrot</button>
+      <button class="role" aria-pressed="false">Overt</button>
+    </div>
+    <nav class="nav">
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-home"/></svg><span class="label">Home</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">Manage</div>
+      <a class="nav-link" href="../ai-checker/index.html#tasks"><svg class="i"><use href="#i-glasses"/></svg><span class="label">Checking Tasks</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">Payment requests</div>
+      <a class="nav-link" href="index.html" aria-current="page"><svg class="i"><use href="#i-plus-circle"/></svg><span class="label">New C. Requests</span></a>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-receipt"/></svg><span class="label">My Requests</span></a>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-stamp"/></svg><span class="label">Supporting tasks</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">Advance</div>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-plus-circle"/></svg><span class="label">New Advance</span></a>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-quote"/></svg><span class="label">My Advance</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">Help</div>
+      <button class="nav-link" id="helpToggle" aria-expanded="true" aria-controls="helpSub"><svg class="i"><use href="#i-help"/></svg><span class="label">Help</span><svg class="i nav-caret"><use href="#i-chev-up"/></svg></button>
+      <div id="helpSub">
+        <a class="nav-link nav-sub" href="#">User Guide</a>
+        <a class="nav-link nav-sub" href="#">Funny Carrot Site</a>
+        <a class="nav-link nav-sub" href="#">FAQs</a>
+      </div>
+      <a class="nav-link" href="#"><svg class="i"><use href="#i-chat"/></svg><span class="label">My Feedback</span></a>
+      <div class="nav-divider"></div>
+
+      <div class="nav-section">My info</div>
+      <div class="nav-me"><svg class="i" style="width:20px;height:20px"><use href="#i-id"/></svg><div><b>Minato</b><span>PN:000007</span></div></div>
+    </nav>
+    <button class="collapse-btn" id="collapseBtn" aria-expanded="true"><span class="label">Collapse sidebar</span><svg class="i"><use href="#i-chev-left"/></svg></button>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <div class="main">
+    <header class="page-head">
+      <h1>New claim request</h1>
+      <p id="pageIntro"></p>
+      <!-- Stepper: claim details → workflow officers → review -->
+      <nav aria-label="Claim steps"><ol class="stepper" id="stepper"></ol></nav>
+    </header>
+
+    <form class="content" id="claimForm" novalidate>
+      <div class="col-left">
+
+      <!-- ===== Step 1: Claim details ===== -->
+      <div class="step-panel" data-step="1">
+        <h2 class="sr-only step-heading" tabindex="-1">Step 1 of 3: Claim details</h2>
+
+        <!-- 01 Attachments: first, because proof of purchase auto-fills the line items -->
+        <div class="items-head" id="sec-files">
+          <h2 class="sec-title"><span class="sec-num">01</span>Attachments</h2>
+          <button type="button" class="switch" id="aiSwitch" role="switch" aria-checked="true" aria-describedby="aiNote">
+            <svg class="i"><use href="#i-bot"/></svg><span>AI extraction</span><span class="track" aria-hidden="true"></span>
+          </button>
+        </div>
+        <p class="sec-note" id="aiNote"></p>
+        <div class="attachments">
+          <section class="card att-box" data-field="files-proof" aria-labelledby="pop">
+            <h3 id="pop"><svg class="i"><use href="#i-file"/></svg>Proof of purchase <span class="card-meta" id="count-proof"></span></h3>
+            <div class="dropzone" data-drop="proof">
+              <svg class="i"><use href="#i-upload"/></svg>
+              <span>Receipts and invoices. Drag files here or <button type="button" class="link-btn" data-pick="proof">choose files</button></span>
+            </div>
+            <input type="file" id="input-proof" data-group="proof" multiple accept=".pdf,.jpg,.jpeg,.png,.heic" hidden>
+            <span class="f-error" id="files-proof-err" hidden></span>
+            <div class="file-list" id="files-proof"></div>
+          </section>
+          <section class="card att-box" data-field="files-support" aria-labelledby="sup">
+            <h3 id="sup"><svg class="i"><use href="#i-file"/></svg>Supporting documents <span class="card-meta">(optional)</span></h3>
+            <div class="dropzone" data-drop="support">
+              <svg class="i"><use href="#i-upload"/></svg>
+              <span>Approval emails, itineraries and the like. Drag files here or <button type="button" class="link-btn" data-pick="support">choose files</button></span>
+            </div>
+            <input type="file" id="input-support" data-group="support" multiple accept=".pdf,.jpg,.jpeg,.png,.heic,.eml,.msg" hidden>
+            <div class="file-list" id="files-support"></div>
+          </section>
+        </div>
+        <input type="file" id="input-replace" accept=".pdf,.jpg,.jpeg,.png,.heic,.eml,.msg" hidden>
+
+        <!-- 02 Basic & Payment Information -->
+        <section class="card" id="sec-basic" aria-labelledby="s02">
+          <div class="card-head">
+            <h2 class="sec-title" id="s02"><span class="sec-num">02</span>Basic &amp; payment information</h2>
+          </div>
+          <div class="fields" id="basicFields" data-scope="basic"></div>
+        </section>
+
+        <!-- 03 Line Items -->
+        <div class="items-head" id="sec-items">
+          <h2 class="sec-title"><span class="sec-num">03</span><span>Line items (<span id="itemCount">1</span>)</span></h2>
+          <span class="total-pill" id="totalPill">Total: SGD 0.00</span>
+        </div>
+        <div id="lineToolsSlot"></div>
+        <div class="items" id="items"></div>
+        <button type="button" class="add-item" id="addItem"><svg class="i"><use href="#i-plus"/></svg>Add line item</button>
+      </div>
+
+      <!-- ===== Step 2: Workflow officers ===== -->
+      <div class="step-panel" data-step="2" hidden>
+        <h2 class="sr-only step-heading" tabindex="-1">Step 2 of 3: Workflow officers</h2>
+        <section class="card" id="sec-officers" aria-labelledby="s-off">
+          <div class="card-head">
+            <h2 class="sec-title" id="s-off">Workflow officers</h2>
+            <span class="card-meta">Who checks and approves this claim</span>
+          </div>
+          <p class="card-intro">The claim goes to the supporting officer first, if you choose one, then to the approving officer. Proxy officers can act for them while they're away.</p>
+          <div class="fields" id="officerFields" data-scope="officers"></div>
+        </section>
+      </div>
+
+      <!-- ===== Step 3: Review and submit ===== -->
+      <div class="step-panel" data-step="3" hidden>
+        <h2 class="sr-only step-heading" tabindex="-1">Step 3 of 3: Review and submit</h2>
+        <div id="review"></div>
+      </div>
+      </div>
+
+      <!-- ===== Summary panel ===== -->
+      <aside class="side-panel" aria-label="Claim summary">
+        <div class="total-banner">
+          <div class="big"><span>Total claim amount</span><b id="sumTotal">SGD 0.00</b></div>
+          <div class="split">Amt w/o GST: <code id="sumExcl">SGD 0.00</code><br>Total GST: <code id="sumGst">SGD 0.00</code></div>
+        </div>
+        <p class="other-cur" id="otherCur" hidden></p>
+
+        <!-- Receipt for the line item you're working on, so you can check it against the fields -->
+        <section class="doc" aria-label="Receipt preview">
+          <div class="doc-tab">
+            <div class="name"><span class="pdf" id="docExt" hidden></span><span id="docName">No receipt to show</span></div>
+            <button type="button" class="icon-btn" id="docOpen" aria-label="Open in a new tab" hidden><svg class="i"><use href="#i-external"/></svg></button>
+          </div>
+          <div class="doc-toolbar">
+            <span class="doc-for" id="docFor"></span>
+            <div class="zoom" id="docZoom" hidden>
+              <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
+              <span id="zoomVal" aria-live="polite">100%</span>
+              <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+              <button type="button" class="icon-btn" id="zoomFit" aria-label="Fit to width"><svg class="i"><use href="#i-expand"/></svg></button>
+            </div>
+          </div>
+          <div class="doc-reading" id="docReading" hidden><svg class="i"><use href="#i-rotate"/></svg>Reading this document to fill in the line item…</div>
+          <div class="doc-canvas" id="docCanvas"></div>
+        </section>
+
+        <details class="card ck-card">
+          <summary class="card-head"><h2 class="sec-title">Before you submit</h2><span class="ck-progress"><span id="ckProgress"></span><svg class="i chev"><use href="#i-chev-down"/></svg></span></summary>
+          <ul class="checklist" id="checklist"></ul>
+        </details>
+      </aside>
+    </form>
+
+    <!-- ===== Bottom action bar ===== -->
+    <footer class="actionbar">
+      <button type="button" class="btn-outline" id="cancelBtn">Cancel</button>
+      <div class="decisions">
+        <span class="decision-hint" id="submitHint" aria-live="polite"></span>
+        <button type="button" class="btn-outline" data-toast="Saving drafts isn't wired up in the prototype.">Save draft</button>
+        <button type="button" class="btn-outline" id="backBtn" hidden>Back</button>
+        <button type="submit" class="btn-verify" form="claimForm" id="primaryBtn">Next: workflow officers</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Dialogs -->
+<dialog id="doneDlg" aria-labelledby="doneTitle">
+  <form method="dialog" class="dlg">
+    <h2 id="doneTitle"><svg class="i"><use href="#i-check-circle"/></svg>Claim submitted</h2>
+    <p id="doneMsg"></p>
+    <div class="dlg-actions">
+      <button class="btn-plain" value="requests">Go to My Requests</button>
+      <button class="btn-verify" value="new">Start a new claim</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="removeDlg" aria-labelledby="removeTitle">
+  <form method="dialog" class="dlg">
+    <h2 id="removeTitle">Remove this file?</h2>
+    <p id="removeMsg"></p>
+    <div class="dlg-actions">
+      <button class="btn-plain" value="cancel">Cancel</button>
+      <button class="btn-outline" value="file">Remove file only</button>
+      <button class="btn-reject" value="both" id="removeBoth">Remove file and line item</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="tplDlg" aria-labelledby="tplTitle">
+  <form method="dialog" class="dlg">
+    <h2 id="tplTitle">Save coding as a template</h2>
+    <p id="tplMsg"></p>
+    <dl class="tpl-values" id="tplValues"></dl>
+    <label class="f-label" for="tplName">Template name</label>
+    <input class="input" id="tplName" autocomplete="off" placeholder="e.g. Tokyo conference travel" aria-describedby="tplErr">
+    <span class="f-error" id="tplErr" hidden></span>
+    <div class="dlg-actions">
+      <button class="btn-plain" value="cancel" formnovalidate>Cancel</button>
+      <button class="btn-verify" value="save" id="tplSave">Save template</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="discardDlg" aria-labelledby="discardTitle">
+  <form method="dialog" class="dlg">
+    <h2 id="discardTitle">Discard this claim?</h2>
+    <p>Everything you've entered and attached will be cleared.</p>
+    <div class="dlg-actions">
+      <button class="btn-plain" value="cancel">Keep editing</button>
+      <button class="btn-reject" value="confirm">Discard claim</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =========================================================
+   Mock data. There's no Figma for this screen, so the
+   dropdown values are placeholders, mostly reused from the
+   AI checker's mock claim. Change options here, not in the
+   render functions.
+   ========================================================= */
+const OPTIONS = {
+  claimType:      ['Marketing Q3 Regional Conference', 'Overseas travel', 'Local transport', 'Staff welfare', 'Training & development'],
+  paymentTerms:   ['[K000] Pay Immediately', '[K030] Pay within 30 days'],
+  paymentMethod:  ['[G] IBG (Employee)', '[T] Telegraphic transfer', '[C] Cheque'],
+  houseBank:      ['[MMI$] MMI Cash on Hand', '[DBS1] DBS Operating Account'],
+  advance:        ['[ADV2501164] Trip to Tokyo', '[ADV2501190] Jakarta roadshow'],
+  officers:       ['Dwight Schrute', 'Fenty Wap', 'Biggie Smalls', 'Grayson Chong', 'Alison Tan'],
+  proxyGroup:     ['Coolio & the gang', 'Finance proxies'],
+  categories:     ['Airfare', 'Accommodation', 'Meals', 'Ground transport', 'Conference fees', 'Other'],
+  agencies:       ['Carrot HQ', 'Carrot Overseas', 'Overt'],
+  assignments:    ['ASG-2207 Tokyo roadshow', 'ASG-2210 Q3 conference', 'ASG-3001 Internal training'],
+  ios:            ['IO-500311 Marketing events', 'IO-500318 Overseas travel', 'IO-500402 Staff development'],
+  currencies:     ['SGD', 'USD', 'EUR', 'JPY', 'MYR'],
+  gstRates:       ['P9 (9%)', 'P0 (0%)'],
+  fundCentres:    ['TRG/PT(Tech)', 'FC-99 - Operations'],
+  costCentres:    ['FPP', '12345 - Marketing'],
+  glAccounts:     ['720100 [AIRFARE-OVERSEAS]', '300-602 [TPT&TRAVELLING-OVERSEAS]', '610200 [MEALS-OVERSEAS]'],
+  aor:            ['AOR-CONF2', 'AOR-OPS1'],
+};
+
+/* What the mock "AI extraction" reads from each proof of purchase. It doesn't look
+   at the file at all: uploads take these in turn, so the flow can be clicked through.
+   Keys match the line-item fields; coding (fund/cost centre, GL) is left to the requestor.
+   All values are placeholders, mostly from the AI checker's mock claim. */
+const EXTRACTS = [
+  { category: 'Airfare', description: 'Return economy airfare, Singapore to Tokyo (SQ638)', currency: 'SGD',
+    amount: '450.00', gst: '40.50', taxCode: 'P9 (9%)', invNo: 'SQ638-ETKT-0021', invDate: '2025-09-28' },
+  { category: 'Accommodation', description: 'Hôtel 34B Astotel, Paris: 2 rooms x 3 nights, Double Room with Breakfast', currency: 'EUR',
+    amount: '1,130.00', invNo: 'INV-34B-20260721-0156', invDate: '2026-07-21' },
+  { category: 'Meals', description: 'Team dinner during the regional conference', currency: 'SGD',
+    amount: '186.00', gst: '16.74', taxCode: 'P9 (9%)', invNo: 'R-55102', invDate: '2025-10-02' },
+];
+const EXTRACT_DELAY = 1400; // ms the mock "reading document" state shows for
+
+/* Field definitions. Labels follow the AI checker; `optional` fields
+   say "(optional)", `err` is shown when a required field is left empty,
+   and `show` hides a field for some line items. */
+const BASIC_FIELDS = [
+  { key: 'payTo',         label: 'Pay to (vendor/employee)', type: 'text', placeholder: 'e.g. Michael Scott', err: 'Enter who this claim pays, such as your own name or the vendor.' },
+  { key: 'claimType',     label: 'Claim type',               type: 'select', options: 'claimType', err: 'Choose a claim type.' },
+  { key: 'invNo',         label: 'Invoice/receipt number',   type: 'text', placeholder: 'e.g. 1234567890123456', err: 'Enter the invoice or receipt number.' },
+  { key: 'invDate',       label: 'Invoice/receipt date',     type: 'date', err: 'Enter the invoice or receipt date.' },
+  { key: 'description',   label: 'Description',              type: 'text', span: 4, placeholder: 'e.g. Ritz Carlton Tokyo', err: 'Describe what this claim is for.' },
+  { key: 'paymentTerms',  label: 'Payment terms',            type: 'select', options: 'paymentTerms', err: 'Choose payment terms.' },
+  { key: 'paymentMethod', label: 'Payment method',           type: 'select', options: 'paymentMethod', err: 'Choose how this claim is paid.' },
+  { key: 'houseBank',     label: 'House bank',               type: 'select', options: 'houseBank', err: 'Choose the house bank to pay from.' },
+  { key: 'advance',       label: 'Advance number (optional)',type: 'select', options: 'advance', optional: true, blank: 'No advance' },
+];
+
+const OFFICER_FIELDS = [
+  { key: 'supporting', label: 'Supporting officer (optional)', type: 'select', options: 'officers', optional: true, blank: 'None' },
+  { key: 'approving',  label: 'Approving officer',         type: 'select', options: 'officers', err: 'Choose who approves this claim.' },
+  { key: 'proxies',    label: 'Proxy officers (optional)',type: 'select', options: 'officers', optional: true, blank: 'None' },
+  { key: 'proxyGroup', label: 'Proxy group',               type: 'select', options: 'proxyGroup', err: 'Choose a proxy group.' },
+];
+
+const isSGD = it => it.currency === 'SGD';
+const ITEM_GROUPS = [
+  { title: 'What it’s for', fields: [
+    { key: 'category',    label: 'Category',       type: 'select', options: 'categories', err: 'Choose a category.' },
+    { key: 'description', label: 'Description',    type: 'text', span: 3, placeholder: 'e.g. Return airfare, Singapore to Tokyo (SQ638)', err: 'Describe what this line item is for.' },
+  ]},
+  { title: 'Amount', fields: [
+    { key: 'currency', label: 'Currency', type: 'select', options: 'currencies', noBlank: true },
+    { key: 'amount',   label: it => isSGD(it) ? 'Amount excl. GST' : 'Amount', type: 'money', err: 'Enter the amount, e.g. 450.00.' },
+    { key: 'gst',      label: 'GST',      type: 'money', show: isSGD, err: 'Enter the GST amount. If there’s no GST, enter 0.00.' },
+    { key: 'taxCode',  label: 'GST rate', type: 'select', options: 'gstRates', show: isSGD, err: 'Choose a GST rate.' },
+  ]},
+  { title: 'Receipt', fields: [
+    { key: 'invNo',      label: 'Invoice/receipt number', type: 'text', placeholder: 'e.g. SQ638-ETKT-0021', err: 'Enter the number on the invoice or receipt.' },
+    { key: 'invDate',    label: 'Invoice/receipt date',   type: 'date', err: 'Enter the date on the invoice or receipt.' },
+    { key: 'attachment', label: 'Attachment',             type: 'attachment', span: 2, err: 'Pick the receipt for this line item. If it isn’t listed, upload it under Attachments first.' },
+  ]},
+  // `templates: true` adds Apply template / Save as template to this group
+  { title: 'Coding', templates: true, fields: [
+    { key: 'fund',    label: 'Fund centre',    type: 'select', options: 'fundCentres', err: 'Choose a fund centre.' },
+    { key: 'cost',    label: 'Cost centre',    type: 'select', options: 'costCentres', err: 'Choose a cost centre.' },
+    { key: 'gl',      label: 'GL account',     type: 'select', options: 'glAccounts', err: 'Choose a GL account.' },
+    { key: 'io',         label: 'IO',                           type: 'select', options: 'ios', err: 'Choose the internal order (IO) this expense is charged to.' },
+    { key: 'aor',        label: 'AOR (fund number) (optional)', type: 'select', options: 'aor', optional: true, blank: 'None' },
+    { key: 'agency',     label: 'Agency (optional)',            type: 'select', options: 'agencies', optional: true },
+    { key: 'assignment', label: 'Assignment (optional)',        type: 'select', options: 'assignments', optional: true },
+    { key: 'as123',      label: 'As123 (optional)',             type: 'text', optional: true, placeholder: 'e.g. AS-00917' },
+    { key: 'location',   label: 'Location (optional)',          type: 'text', optional: true, placeholder: 'e.g. Tokyo' },
+    { key: 'project',    label: 'Project (optional)',           type: 'text', optional: true, span: 2, placeholder: 'e.g. PRJ-0312 Marketing Q3 Regional Conference' },
+  ]},
+];
+const ITEM_FIELDS = ITEM_GROUPS.flatMap(g => g.fields);
+const CODING_FIELDS = ITEM_GROUPS.find(g => g.templates).fields;
+
+/* Finance coding templates. These two are sample ones; templates the requestor
+   saves are added here for the session (they survive "Start a new claim"). */
+const TEMPLATES = [
+  { name: 'Marketing conference travel', values: { fund: 'TRG/PT(Tech)', cost: '12345 - Marketing', gl: '720100 [AIRFARE-OVERSEAS]', aor: 'AOR-CONF2', io: 'IO-500311 Marketing events', agency: 'Carrot HQ', project: 'PRJ-0312 Marketing Q3 Regional Conference' } },
+  { name: 'Overseas accommodation', values: { fund: 'TRG/PT(Tech)', cost: 'FPP', gl: '300-602 [TPT&TRAVELLING-OVERSEAS]', aor: 'AOR-CONF2', io: 'IO-500318 Overseas travel' } },
+];
+
+// AI extraction toggle. A preference, so it's kept when the form is reset.
+let aiExtract = true;
+
+/* ---------- State ---------- */
+let nextId = 1;
+const blankFrom = fields => Object.fromEntries(fields.map(f => [f.key, '']));
+function newItem() { return { ...blankFrom(ITEM_FIELDS), id: nextId++, currency: 'SGD' }; }
+function blankState() {
+  return {
+    basic: blankFrom(BASIC_FIELDS),
+    officers: blankFrom(OFFICER_FIELDS),
+    items: [newItem()],
+    files: { proof: [], support: [] },
+    ai: new Set(),  // ids of fields filled by extraction and not edited since, e.g. "i3-amount"
+    activeItem: null, // line item you're working on; the viewer shows its attachment
+    viewFile: null,   // file shown in the receipt viewer
+    zoom: 100,        // image zoom in the viewer; 100 = fit to width
+    step: 1,              // 1 claim details, 2 workflow officers, 3 review
+    rvOpen: null,         // line item expanded on the review (null = the first, 0 = none)
+    openLine: null,       // line item expanded in step 1 (null = the first, 0 = none); the rest are compact rows
+    lineFilter: 'all',    // line list filter: all, attention or complete
+    lineQuery: '',        // line list search
+    triedSteps: new Set(), // steps you've tried to leave with gaps; their errors show and update as you type
+  };
+}
+const state = blankState();
+
+/* ---------- Helpers ---------- */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const ico = (name, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const fmt = n => n.toLocaleString('en-SG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const allFiles = () => [...state.files.proof, ...state.files.support];
+// Amounts accept "1,240.50" or "1240.5"; anything else is NaN
+const num = s => { const v = String(s).replace(/,/g, '').trim(); return /^\d+(\.\d{1,2})?$/.test(v) ? parseFloat(v) : NaN; };
+const shown = (f, it) => !f.show || f.show(it);
+const labelOf = (f, it) => typeof f.label === 'function' ? f.label(it) : f.label;
+
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ---------- Fields ---------- */
+function fieldHtml(f, value, id, item) {
+  const describedBy = `aria-describedby="${id}-err"`;
+  let control;
+  if (f.type === 'select' || f.type === 'attachment') {
+    const opts = f.type === 'attachment' ? allFiles().map(x => [x.id, x.name]) : OPTIONS[f.options].map(o => [o, o]);
+    const blankText = f.blank || (f.type === 'attachment' && !opts.length ? 'Upload a file first' : 'Select…');
+    const blank = f.noBlank ? '' : `<option value="">${esc(blankText)}</option>`;
+    control = `<select class="input" id="${id}" data-key="${f.key}" ${describedBy}>${blank}${opts.map(([v, t]) =>
+      `<option value="${esc(v)}"${v === value ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select>`;
+  } else if (f.type === 'money') {
+    control = `<div class="affix-wrap"><span class="affix" aria-hidden="true">${esc(item.currency)}</span><input class="input" id="${id}" data-key="${f.key}" inputmode="decimal" autocomplete="off" placeholder="0.00" value="${esc(value)}" ${describedBy}></div>`;
+  } else {
+    control = `<input class="input" type="${f.type}" id="${id}" data-key="${f.key}" autocomplete="off" placeholder="${esc(f.placeholder || '')}" value="${esc(value)}" ${describedBy}>`;
+  }
+  const span = f.span ? ` span-${f.span}` : '';
+  const aiTag = state.ai.has(id) ? `<span class="ai-tag" title="Filled from the attached document. Check it matches.">${ico('bot')}AI</span>` : '';
+  return `<div class="field${span}" data-field="${id}">
+    <label class="f-label" for="${id}">${esc(labelOf(f, item))}${aiTag}</label>${control}
+    <span class="f-error" id="${id}-err" hidden></span></div>`;
+}
+
+function renderBasic() {
+  $('#basicFields').innerHTML = BASIC_FIELDS.map(f => fieldHtml(f, state.basic[f.key], `b-${f.key}`)).join('');
+  $('#officerFields').innerHTML = OFFICER_FIELDS.map(f => fieldHtml(f, state.officers[f.key], `o-${f.key}`)).join('');
+}
+
+/* ---------- Line items ---------- */
+function lineTotal(it) {
+  const a = num(it.amount), g = isSGD(it) ? num(it.gst) : 0;
+  if (isNaN(a)) return '';
+  return `${it.currency} ${fmt(a + (isNaN(g) ? 0 : g))}`;
+}
+function stripHtml(it, i) {
+  const total = lineTotal(it);
+  return `<div class="strip-left">
+      <span class="strip-num">${i + 1}</span>
+      <h3 class="strip-title">Line item ${i + 1}</h3>
+      ${it.category ? `<span class="tag-teal">${esc(it.category)}</span>` : ''}
+    </div>
+    <div class="strip-right">
+      <span class="line-total${total ? '' : ' empty'}">${total || 'No amount yet'}</span>
+      ${state.items.length > 1 ? `<button type="button" class="btn-remove" data-remove-item="${it.id}" aria-label="Remove line item ${i + 1}">${ico('trash')}Remove</button>` : ''}
+      ${state.items.length > 1 ? `<button type="button" class="item-close" data-close-line="${it.id}" aria-expanded="true" aria-label="Collapse line item ${i + 1}">${ico('chev-up')}</button>` : ''}
+    </div>`;
+}
+
+/* ---------- Line list: compact rows, one open at a time, search and filter ----------
+   So a claim with many line items (40 or more) stays manageable: each line is a two-line
+   row, and only the one you're working on shows its fields. */
+const LIST_TOOLS_FROM = 4;   // search and filters appear once there are this many line items
+const openLineId = () => state.openLine === 0 ? null
+  : state.items.some(it => it.id === state.openLine) ? state.openLine : state.items[0]?.id;
+
+function lineStatus(it, errs) {
+  const missing = errs.filter(e => e.id.startsWith(`i${it.id}-`)).length;
+  if (missing) return { key: 'attention', cls: state.triedSteps.has(1) ? 'missing err' : 'missing', text: `${missing} field${missing > 1 ? 's' : ''} missing` };
+  if (ITEM_FIELDS.some(f => state.ai.has(`i${it.id}-${f.key}`))) return { key: 'complete', cls: 'ai', text: 'AI-filled, check' };
+  return { key: 'complete', cls: 'ok', text: 'Complete' };
+}
+function matchesList(it, errs) {
+  if (state.items.length < LIST_TOOLS_FROM) return true;
+  const q = state.lineQuery.trim().toLowerCase();
+  if (q && ![it.category, it.description, it.invNo, it.amount, it.cost, it.gl, it.io, it.project]
+    .some(v => String(v || '').toLowerCase().includes(q))) return false;
+  return state.lineFilter === 'all' || lineStatus(it, errs).key === state.lineFilter;
+}
+function lineRow(it, i, errs, openAttr) {
+  const st = lineStatus(it, errs), total = lineTotal(it);
+  const sub = [it.invNo, fmtDate(it.invDate), it.cost && `CC ${it.cost}`, it.gl && `GL ${it.gl.split(' ')[0]}`].filter(Boolean).join(' · ');
+  return `<button type="button" class="line-row" ${openAttr}="${it.id}" aria-expanded="false" aria-label="Line item ${i + 1}: ${esc(it.description || 'no description yet')}, ${st.text}. Show details">
+    <span class="num">${i + 1}</span>
+    <span class="lr-main">
+      <span class="lr-top">${it.category ? `<span class="chip">${esc(it.category)}</span>` : ''}<span class="lr-desc">${esc(it.description || 'No description yet')}</span></span>
+      <span class="lr-sub">${esc(sub || 'No receipt details yet')}</span>
+    </span>
+    <span class="lr-status ${st.cls}">${st.text}</span>
+    <span class="lr-amount${total ? '' : ' empty'}">${total || 'No amount'}</span>
+    ${ico('chev-down', 'lr-chev')}
+  </button>`;
+}
+function lineToolsHtml(prefix) {
+  const f = (key, label) => `<button type="button" class="filter" data-line-filter="${key}" aria-pressed="false">${label} <span class="cnt"></span></button>`;
+  return `<div class="line-tools" id="${prefix}-tools" hidden>
+    <div class="lt-search">${ico('search')}<label class="sr-only" for="${prefix}-search">Search line items</label>
+      <input class="input" type="search" id="${prefix}-search" data-line-search autocomplete="off" placeholder="Search description, invoice or coding"></div>
+    <div class="filters" role="group" aria-label="Show line items">${f('all', 'All')}${f('attention', 'Needs attention')}${f('complete', 'Complete')}</div>
+    <span class="lt-count" aria-live="polite"></span>
+  </div>`;
+}
+function updateLineTools(prefix, errs) {
+  const box = $(`#${prefix}-tools`);
+  if (!box) return;
+  box.hidden = state.items.length < LIST_TOOLS_FROM;
+  const counts = { all: state.items.length, attention: 0, complete: 0 };
+  state.items.forEach(it => counts[lineStatus(it, errs).key]++);
+  box.querySelectorAll('[data-line-filter]').forEach(b => {
+    b.setAttribute('aria-pressed', b.dataset.lineFilter === state.lineFilter);
+    b.querySelector('.cnt').textContent = counts[b.dataset.lineFilter];
+  });
+  const search = box.querySelector('[data-line-search]');
+  if (document.activeElement !== search) search.value = state.lineQuery;
+  const shown = state.items.filter(it => matchesList(it, errs)).length;
+  box.querySelector('.lt-count').textContent = shown < state.items.length ? `Showing ${shown} of ${state.items.length}` : '';
+}
+const noMatchHtml = `<p class="lt-empty">No other line items match. <button type="button" class="link-btn" data-clear-line-filter>Show all line items</button></p>`;
+// The list: the open line in full, the rest as compact rows that match the search and filter
+function lineListHtml(errs, openId, openHtml, openAttr) {
+  let others = 0;
+  const html = state.items.map((it, i) => {
+    if (it.id === openId) return openHtml(it, i);
+    if (!matchesList(it, errs)) return '';
+    others++;
+    return lineRow(it, i, errs, openAttr);
+  }).join('');
+  const narrowed = state.lineQuery.trim() || state.lineFilter !== 'all';
+  return html + (!others && narrowed && state.items.length >= LIST_TOOLS_FROM ? noMatchHtml : '');
+}
+
+// Open one line item in step 1 (closing the others) and show its receipt
+function openLine(id, { focus = true } = {}) {
+  const it = state.items.find(x => x.id === id);
+  state.openLine = id;
+  state.activeItem = id;
+  state.viewFile = it.attachment || null;
+  renderItems(); refresh();
+  const el = $(`#line-${id}`);
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (focus) el.querySelector('.input')?.focus({ preventScroll: true });
+}
+function closeLine(id) {
+  state.openLine = 0;
+  renderItems(); refresh();
+  $(`[data-open-line="${id}"]`)?.focus();
+}
+// The next line in the list as it's currently filtered, or null at the end
+function nextLineAfter(id) {
+  const errs = validate();
+  const list = state.items.filter(it => it.id === id || matchesList(it, errs));
+  return list[list.indexOf(list.find(it => it.id === id)) + 1] || null;
+}
+function templateHead(g, it, i) {
+  return `<div class="group-head">
+    <h4 class="group-title">${esc(g.title)}</h4>
+    <div class="tpl-actions">
+      <label class="sr-only" for="tpl-${it.id}">Apply a coding template to line item ${i + 1}</label>
+      <select class="input" id="tpl-${it.id}" data-apply-template="${it.id}">
+        <option value="">Apply template…</option>
+        ${TEMPLATES.map((t, n) => `<option value="${n}">${esc(t.name)}</option>`).join('')}
+      </select>
+      <button type="button" class="link-btn" data-save-template="${it.id}" aria-label="Save line item ${i + 1}'s coding as a template">Save as template</button>
+    </div>
+  </div>`;
+}
+function openLineHtml(it, i) {
+  const next = state.items.length > 1 ? nextLineAfter(it.id) : null;
+  return `
+    <section class="line${it.id === activeId() ? ' active' : ''}" id="line-${it.id}" data-item="${it.id}" aria-label="Line item ${i + 1}">
+      <div class="line-strip" id="strip-${it.id}">${stripHtml(it, i)}</div>
+      ${ITEM_GROUPS.map(g => `<div class="group">
+        ${g.templates ? templateHead(g, it, i) : `<h4 class="group-title">${esc(g.title)}</h4>`}
+        <div class="fields">
+          ${g.fields.filter(f => shown(f, it)).map(f => fieldHtml(f, it[f.key], `i${it.id}-${f.key}`, it)).join('')}
+          ${g.title === 'Amount' && !isSGD(it) ? `<p class="gst-note">GST and the GST rate don’t apply to ${esc(it.currency)} claims. Enter the full amount on the receipt.</p>` : ''}
+        </div></div>`).join('')}
+      ${state.items.length > 1 ? `<div class="line-foot">
+        <button type="button" class="btn-plain" data-close-line="${it.id}">Collapse</button>
+        ${next ? `<button type="button" class="btn-outline" data-next-line="${next.id}">Next line item (${state.items.indexOf(next) + 1})${ico('chev-right')}</button>` : ''}
+      </div>` : ''}
+    </section>`;
+}
+function renderItems() {
+  const errs = validate();
+  const openId = openLineId();
+  // The open line stays in the list even if the filter would hide it, so it doesn't vanish while you edit
+  $('#items').innerHTML = lineListHtml(errs, openId, (it, i) => openLineHtml(it, i), 'data-open-line');
+  $('#itemCount').textContent = state.items.length;
+  updateLineTools('lt', errs);
+  renderFiles();   // file rows name their line items by number
+}
+function renderStrip(it) {
+  $(`#strip-${it.id}`).innerHTML = stripHtml(it, state.items.indexOf(it));
+}
+
+/* ---------- Attachments ---------- */
+const fileById = id => allFiles().find(f => f.id === id);
+const linkedItems = fileId => state.items.filter(it => it.attachment === fileId);
+const itemName = it => `line item ${state.items.indexOf(it) + 1}${it.category ? ` (${it.category})` : ''}`;
+const listNames = names => names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
+// "line item 2", "line items 2 and 5", or just "12 line items" once the list gets long
+const lineRefs = items => items.length > 3 ? `${items.length} line items`
+  : listNames(items.map(it => `line item ${state.items.indexOf(it) + 1}`));
+
+function fileStatus(f) {
+  if (f.reading) return `<span class="reading">${ico('rotate')}Reading document…</span>`;
+  const linked = linkedItems(f.id);
+  if (linked.length) return `<span class="linked">${f.extracted ? 'Filled' : 'Attached to'} ${esc(lineRefs(linked))}</span>`;
+  return 'Not attached to a line item';
+}
+function renderFiles() {
+  for (const group of ['proof', 'support']) {
+    $(`#files-${group}`).innerHTML = state.files[group].map(f => `
+      <div class="file${state.viewFile === f.id ? ' viewing' : ''}">
+        <button type="button" class="file-open" data-view-file="${f.id}" title="Preview ${esc(f.name)}"${state.viewFile === f.id ? ' aria-current="true"' : ''}>
+          <span class="file-start"><span class="pdf">${esc(f.ext)}</span><span>
+            <span class="file-name">${esc(f.name)}</span>
+            <span class="file-sub">${esc(f.size)} · ${fileStatus(f)}</span></span></span>
+        </button>
+        <span class="file-actions">
+          <button type="button" class="link-btn" data-replace-file="${f.id}" aria-label="Replace ${esc(f.name)}">Replace</button>
+          <button type="button" class="icon-btn" data-remove-file="${f.id}" aria-label="Remove ${esc(f.name)}">${ico('x')}</button>
+        </span>
+      </div>`).join('');
+  }
+  $('#count-proof').textContent = state.files.proof.length ? `(${state.files.proof.length})` : '';
+}
+
+// Mock upload: only the file name and size are read, nothing leaves the browser
+let fileSeq = 1;
+// The viewer shows the real file through a local blob: URL. Images and PDFs preview in the
+// browser; other types (HEIC, emails) get an "open the file" message instead.
+const PREVIEW_IMAGES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
+function fileMeta(file) {
+  const kb = file.size / 1024;
+  const ext = (file.name.split('.').pop() || 'file').toLowerCase().slice(0, 4);
+  const isBlob = typeof Blob !== 'undefined' && file instanceof Blob;
+  return {
+    name: file.name,
+    ext,
+    size: kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(kb))} KB`,
+    url: isBlob ? URL.createObjectURL(file) : null,
+    kind: !isBlob ? 'none' : PREVIEW_IMAGES.includes(file.type) ? 'image'
+      : (file.type === 'application/pdf' || ext === 'pdf') ? 'pdf' : 'none',
+  };
+}
+const releaseFile = f => { if (f?.url) URL.revokeObjectURL(f.url); };
+function addFiles(group, list) {
+  const added = list.map(file => ({ id: `f${fileSeq++}`, ...fileMeta(file) }));
+  state.files[group].push(...added);
+  state.viewFile = added.at(-1).id;   // preview what was just attached
+  const reading = group === 'proof' && aiExtract;
+  if (reading) added.forEach(f => extract(f));
+  renderFiles(); renderItems(); refresh();
+  toast(reading
+    ? `Reading ${added.length > 1 ? `${added.length} documents` : added[0].name} to fill in the line item${added.length > 1 ? 's' : ''}…`
+    : `${added.length} file${added.length > 1 ? 's' : ''} attached.${group === 'proof' ? ' Pick it as the attachment on a line item.' : ''}`);
+}
+
+/* ---------- Mock AI extraction ---------- */
+let extractSeq = 0;
+const isBlankItem = it => ITEM_FIELDS.every(f => f.key === 'currency' ? it.currency === 'SGD' : !it[f.key]);
+
+// Reads a proof of purchase and fills the line item(s) it's attached to. A new file
+// fills the first empty line item, or a new one. On a replaced file, fields the
+// requestor has edited themselves are kept.
+function extract(file, { replacing = false } = {}) {
+  const run = file.run = (file.run || 0) + 1;   // a later replace or removal cancels this run
+  file.reading = true;
+  setTimeout(() => {
+    if (fileById(file.id) !== file || file.run !== run) return;
+    const data = { ...EXTRACTS[extractSeq++ % EXTRACTS.length] };
+    // GST and the GST rate only apply to SGD, so a non-SGD receipt clears them
+    if (data.currency !== 'SGD') { data.gst = ''; data.taxCode = ''; }
+    let targets = linkedItems(file.id);
+    if (!targets.length) {
+      let it = state.items.find(isBlankItem);
+      if (!it) { it = newItem(); state.items.push(it); }
+      it.attachment = file.id;
+      targets = [it];
+    }
+    let kept = 0;
+    for (const it of targets) {
+      for (const f of ITEM_FIELDS) {
+        if (!(f.key in data)) continue;
+        const id = `i${it.id}-${f.key}`;
+        // Keep what the requestor typed; overwrite empty and still-AI-filled fields
+        if (replacing && it[f.key] && !state.ai.has(id) && it[f.key] !== data[f.key]) { kept++; continue; }
+        it[f.key] = data[f.key];
+        if (data[f.key]) state.ai.add(id); else state.ai.delete(id);
+      }
+    }
+    // The first receipt also fills the claim's invoice number and date, if they're empty
+    for (const key of ['invNo', 'invDate']) {
+      if (!state.basic[key] && data[key]) { state.basic[key] = data[key]; state.ai.add(`b-${key}`); }
+    }
+    file.reading = false;
+    file.extracted = true;
+    // Show the receipt next to the line item it just filled, so it can be checked
+    state.activeItem = targets[0].id;
+    state.openLine = targets[0].id;
+    state.viewFile = file.id;
+    renderBasic(); renderItems(); renderFiles(); refresh();
+    const names = listNames(targets.map(itemName));
+    toast(replacing
+      ? `Updated ${names} from ${file.name}.${kept ? ` Kept ${kept} field${kept > 1 ? 's' : ''} you'd edited.` : ''}`
+      : `Filled ${names} from ${file.name}. Check the details.`);
+  }, EXTRACT_DELAY);
+}
+
+/* ---------- Replace and remove files ---------- */
+let replacingId = null;
+function replaceFile(id, file) {
+  const f = fileById(id);
+  if (!f) return;
+  releaseFile(f);
+  Object.assign(f, fileMeta(file));   // same id, so line items stay attached
+  f.extracted = false;
+  state.viewFile = id;
+  const reading = state.files.proof.includes(f) && aiExtract;
+  if (reading) extract(f, { replacing: true });
+  else cancelRead(f);
+  renderFiles(); refresh();
+  toast(reading ? `Replaced. Reading ${f.name}…` : `Replaced with ${f.name}. Check the line item still matches it.`);
+}
+
+/* ---------- AI extraction toggle ---------- */
+function cancelRead(f) { f.run = (f.run || 0) + 1; f.reading = false; }
+function renderAiSwitch() {
+  $('#aiSwitch').setAttribute('aria-checked', aiExtract);
+  $('#aiNote').textContent = aiExtract
+    ? 'On: each proof of purchase you upload is read and filled into a line item. Turn it off to fill in line items yourself.'
+    : 'Off: files are attached as they are. Fill in each line item yourself and pick its attachment.';
+}
+function setAiExtract(on) {
+  aiExtract = on;
+  // Turning it off stops any reads in progress; those files stay attached but fill nothing
+  const stopped = on ? [] : state.files.proof.filter(f => f.reading);
+  stopped.forEach(cancelRead);
+  renderAiSwitch(); renderFiles(); refresh();
+  toast(on ? 'AI extraction on. New proof of purchase uploads fill in line items.'
+    : `AI extraction off.${stopped.length ? ` Stopped reading ${stopped.length} document${stopped.length > 1 ? 's' : ''}.` : ''} Files are attached without filling in line items.`);
+}
+
+let removingId = null;
+function askRemoveFile(id) {
+  const f = fileById(id);
+  const linked = linkedItems(id);
+  if (!linked.length) { removeFile(id, false); return; }
+  removingId = id;
+  const names = listNames(linked.map(itemName));
+  $('#removeTitle').textContent = `Remove ${f.name}?`;
+  $('#removeMsg').textContent = `It's attached to ${names}. You can remove the line item too, or keep it and attach a different file.`;
+  $('#removeBoth').textContent = linked.length > 1 ? 'Remove file and line items' : 'Remove file and line item';
+  $('#removeDlg').showModal();
+}
+function removeFile(id, withItems) {
+  const f = fileById(id);
+  for (const g of ['proof', 'support']) state.files[g] = state.files[g].filter(x => x.id !== id);
+  const linked = linkedItems(id);
+  if (withItems) {
+    state.items = state.items.filter(it => !linked.includes(it));
+    if (!state.items.length) state.items = [newItem()];
+  } else {
+    linked.forEach(it => { it.attachment = ''; });
+  }
+  releaseFile(f);
+  if (state.viewFile === id) state.viewFile = activeLine()?.attachment || null;
+  renderFiles(); renderItems(); refresh();
+  toast(withItems ? `Removed ${f.name} and its line item${linked.length > 1 ? 's' : ''}.`
+    : linked.length ? `Removed ${f.name}. Attach another file to ${listNames(linked.map(itemName))}.` : `Removed ${f.name}.`);
+}
+
+/* ---------- Receipt viewer ---------- */
+// The active line item is the one you last clicked or tabbed into (the first one by default)
+const activeId = () => state.items.some(it => it.id === state.activeItem) ? state.activeItem : state.items[0]?.id;
+const activeLine = () => state.items.find(it => it.id === activeId());
+
+function setActiveItem(id) {
+  if (id === activeId()) return;
+  state.activeItem = id;
+  document.querySelectorAll('.line').forEach(el => el.classList.toggle('active', +el.dataset.item === id));
+  // Show this line's receipt; a line without one shows an empty viewer saying so
+  state.viewFile = activeLine().attachment || null;
+  renderFiles(); renderViewer();
+}
+function viewFile(id) {
+  state.viewFile = id;
+  const linked = linkedItems(id)[0];
+  if (linked && linked.id !== activeId()) {
+    state.activeItem = linked.id;
+    document.querySelectorAll('.line').forEach(el => el.classList.toggle('active', +el.dataset.item === linked.id));
+  }
+  if (linked && state.step === 3) state.rvOpen = linked.id;   // on the review, open the line it belongs to
+  renderFiles(); renderViewer();
+  if (state.step === 3) renderReview();
+}
+// Review: open a line item and show its receipt next to it, as the AI checker does
+function openReviewItem(id) {
+  state.rvOpen = id;
+  state.activeItem = id;
+  state.viewFile = state.items.find(it => it.id === id).attachment || null;
+  renderFiles(); renderViewer(); renderReviewItems();
+  $('#rvItems .item-open')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+let viewerKey = null;   // what the canvas is showing, so a PDF isn't reloaded on every keystroke
+function renderViewer() {
+  const f = fileById(state.viewFile);
+  const it = activeLine();
+  const linked = f ? linkedItems(f.id) : [];
+
+  // Header and toolbar
+  $('#docName').textContent = f ? f.name : 'No receipt to show';
+  $('#docExt').hidden = !f;
+  if (f) $('#docExt').textContent = f.ext;
+  $('#docOpen').hidden = !f?.url;
+  $('#docFor').innerHTML = !f ? (it ? `Line item <b>${state.items.indexOf(it) + 1}</b>` : '')
+    : linked.length ? `Attached to <b>${esc(lineRefs(linked))}</b>`
+    : 'Not attached to a line item';
+  $('#docZoom').hidden = f?.kind !== 'image';
+  $('#docReading').hidden = !f?.reading;
+
+  // Canvas
+  const key = f ? `${f.id}|${f.url}|${f.kind}` : `empty|${it?.id}|${allFiles().length}`;
+  if (key === viewerKey) { applyZoom(); return; }
+  viewerKey = key;
+  const canvas = $('#docCanvas');
+  canvas.classList.toggle('has-frame', f?.kind === 'pdf');
+  if (f?.kind === 'image') {
+    canvas.innerHTML = `<img id="docImg" src="${f.url}" alt="${esc(f.name)}">`;
+  } else if (f?.kind === 'pdf') {
+    canvas.innerHTML = `<iframe src="${f.url}" title="${esc(f.name)}"></iframe>`;
+  } else if (f) {
+    canvas.innerHTML = `<div class="no-preview">${ico('file')}<b>No preview for .${esc(f.ext)} files</b>
+      ${f.url ? `<span><button type="button" class="link-btn" data-open-file>Open the file</button> to check it against the line item.</span>` : '<span>Open the file on your computer to check it against the line item.</span>'}</div>`;
+  } else if (!allFiles().length) {
+    canvas.innerHTML = `<div class="no-preview">${ico('receipt')}<b>Your receipt shows here</b><span>Attach a proof of purchase under Attachments, then check it against the line item while you fill it in.</span></div>`;
+  } else {
+    canvas.innerHTML = `<div class="no-preview">${ico('clip')}<b>Line item ${state.items.indexOf(it) + 1} has no attachment</b><span>Pick one in its Attachment field, or click a file under Attachments to preview it.</span></div>`;
+  }
+  applyZoom();
+}
+function applyZoom() {
+  const img = $('#docImg');
+  if (img) img.style.width = `${state.zoom}%`;
+  $('#zoomVal').textContent = `${state.zoom}%`;
+}
+
+/* ---------- Coding templates ---------- */
+function applyTemplate(itemId, n) {
+  const it = state.items.find(x => x.id === itemId);
+  const tpl = TEMPLATES[n];
+  // Fields the template leaves empty are cleared too, so the line matches the template exactly
+  for (const f of CODING_FIELDS) {
+    it[f.key] = tpl.values[f.key] || '';
+    state.ai.delete(`i${it.id}-${f.key}`);
+  }
+  renderItems(); refresh();
+  $(`#tpl-${it.id}`)?.focus();
+  toast(`Applied “${tpl.name}” to ${itemName(it)}.`);
+}
+
+let savingFrom = null;
+function askSaveTemplate(itemId) {
+  const it = state.items.find(x => x.id === itemId);
+  const filled = CODING_FIELDS.filter(f => it[f.key]);
+  if (!filled.length) { toast(`Fill in the coding on ${itemName(it)} first, then save it as a template.`); return; }
+  savingFrom = it;
+  $('#tplMsg').textContent = `Saves the coding from ${itemName(it)} so you can apply it to other line items.`;
+  $('#tplValues').innerHTML = filled.map(f => `<dt>${esc(labelOf(f, it).replace(' (optional)', ''))}</dt><dd>${esc(it[f.key])}</dd>`).join('');
+  $('#tplName').value = '';
+  $('#tplErr').hidden = true;
+  $('#tplDlg').showModal();
+  $('#tplName').focus();
+}
+function templateNameError(name) {
+  if (!name) return 'Name the template so you can find it later.';
+  if (TEMPLATES.some(t => t.name.toLowerCase() === name.toLowerCase())) return `You already have a template called “${name}”. Choose another name.`;
+  return null;
+}
+
+/* ---------- Validation ---------- */
+function checkField(f, value, item) {
+  if (item && !shown(f, item)) return null;
+  const v = String(value).trim();
+  if (!v) return f.optional ? null : f.err;
+  if (f.type === 'money') {
+    const n = num(v);
+    if (isNaN(n)) return 'Enter an amount using numbers only, e.g. 1,240.50.';
+    if (f.key === 'amount' && n <= 0) return 'Enter an amount greater than 0.';
+  }
+  return null;
+}
+// Returns errors in the order they appear on the page
+function validate() {
+  const errs = [];
+  const push = (id, msg) => msg && errs.push({ id, msg });
+  if (!state.files.proof.length) push('files-proof', 'Attach at least one proof of purchase, such as a receipt or invoice.');
+  else if (state.files.proof.some(f => f.reading)) push('files-proof', 'Still reading your documents. Wait a moment, then check the filled-in line items.');
+  BASIC_FIELDS.forEach(f => push(`b-${f.key}`, checkField(f, state.basic[f.key])));
+  state.items.forEach(it => ITEM_FIELDS.forEach(f => push(`i${it.id}-${f.key}`, checkField(f, it[f.key], it))));
+  OFFICER_FIELDS.forEach(f => push(`o-${f.key}`, checkField(f, state.officers[f.key])));
+  return errs;
+}
+// Which step a field is on: officers are step 2, everything else is step 1
+const stepOf = id => id.startsWith('o-') ? 2 : 1;
+const shownErr = e => state.triedSteps.has(stepOf(e.id));
+function renderErrors(errs) {
+  const byId = Object.fromEntries(errs.filter(shownErr).map(e => [e.id, e.msg]));
+  document.querySelectorAll('[data-field]').forEach(el => {
+    const id = el.dataset.field;
+    const msg = byId[id];
+    const errEl = $(`#${id}-err`);
+    el.toggleAttribute('data-invalid', !!msg);
+    el.querySelector('.input')?.setAttribute('aria-invalid', !!msg);
+    if (errEl) { errEl.hidden = !msg; errEl.textContent = msg || ''; }
+  });
+  // The action bar counts the gaps on the step you're on
+  const hint = $('#submitHint');
+  const n = errs.filter(e => shownErr(e) && stepOf(e.id) === state.step).length;
+  hint.textContent = n ? `${n} field${n > 1 ? 's need' : ' needs'} attention` : '';
+  hint.classList.toggle('err', !!n);
+}
+
+/* ---------- Steps ---------- */
+const STEPS = [
+  { n: 1, title: 'Claim details',     sub: 'Attachments, claim info and line items',
+    intro: 'Start by attaching your receipts. With AI extraction on, each proof of purchase is read and filled into a line item for you to check. Fields marked (optional) can be left empty.' },
+  { n: 2, title: 'Workflow officers', sub: 'Who checks and approves it',
+    intro: 'Choose who checks and approves this claim.' },
+  { n: 3, title: 'Review and submit', sub: 'Check everything, then send',
+    intro: 'Check the claim against your receipts before you submit it.' },
+];
+const NEXT_LABEL = { 1: 'Next: workflow officers', 2: 'Next: review', 3: 'Submit claim' };
+
+function renderStepper() {
+  $('#stepper').innerHTML = STEPS.map(s => {
+    const current = s.n === state.step, done = s.n < state.step;
+    return `<li class="${done ? 'done' : ''}"><button type="button" class="step${done ? ' done' : ''}" data-step-go="${s.n}"${current ? ' aria-current="step"' : ''}>
+      <span class="dot">${done ? ico('check') : s.n}</span><span><b>${esc(s.title)}</b><small>${esc(s.sub)}</small></span>
+      <span class="sr-only">${current ? ', current step' : done ? ', done' : ''}</span></button></li>`;
+  }).join('');
+  document.querySelectorAll('.step-panel').forEach(p => { p.hidden = +p.dataset.step !== state.step; });
+  $('#pageIntro').textContent = STEPS[state.step - 1].intro;
+  $('#backBtn').hidden = state.step === 1;
+  $('#primaryBtn').textContent = NEXT_LABEL[state.step];
+}
+function goToStep(n, { focus = true } = {}) {
+  state.step = n;
+  if (n === 3) {
+    // The review opens on a line item with its receipt beside it
+    const id = rvOpenId();
+    const it = state.items.find(x => x.id === id);
+    if (it) { state.activeItem = id; state.viewFile = it.attachment || null; renderFiles(); }
+  }
+  renderStepper(); refresh();   // refresh also draws the review on step 3
+  $('.col-left').scrollTop = 0;
+  if (focus) $(`.step-panel[data-step="${n}"] .step-heading`).focus({ preventScroll: true });
+}
+function focusFirstError(errs) {
+  // A line item's fields are only on the page while it's open, so open it first
+  const line = /^i(\d+)-/.exec(errs[0].id);
+  if (line && openLineId() !== +line[1]) {
+    const it = state.items.find(x => x.id === +line[1]);
+    state.openLine = state.activeItem = it.id;
+    state.viewFile = it.attachment || null;
+    renderItems(); refresh();
+  }
+  const first = $(`[data-field="${errs[0].id}"]`);
+  first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  (first.querySelector('.input') || first.querySelector('button'))?.focus({ preventScroll: true });
+}
+// Moving forward checks every step before the target; it stops on the first one with gaps
+function tryGoTo(target) {
+  if (target <= state.step) { goToStep(target); return true; }
+  const errs = validate();
+  for (let s = 1; s < target; s++) {
+    const gaps = errs.filter(e => stepOf(e.id) === s);
+    if (gaps.length) {
+      state.triedSteps.add(s);
+      if (s !== state.step) goToStep(s, { focus: false }); else { renderItems(); refresh(); }   // rows show gaps in red now
+      focusFirstError(gaps);
+      return false;
+    }
+  }
+  goToStep(target);
+  return true;
+}
+
+/* ---------- Review (laid out like the AI checker's claim view) ---------- */
+const fmtDate = v => v ? new Date(`${v}T00:00`).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+const plainLabel = f => labelOf(f).replace(' (optional)', '');
+const orNone = v => v ? esc(v) : '<span class="f-value empty">Not given</span>';
+function rvField(label, value, cls = '') {
+  return `<div class="rv-field ${cls}"><span class="f-label">${esc(label)}</span><span class="f-value${value ? '' : ' empty'}">${value ? esc(value) : 'Not given'}</span></div>`;
+}
+function rvCard(num, title, editTarget, body, id) {
+  return `<section class="card" aria-labelledby="${id}">
+    <div class="card-head"><h3 class="sec-title" id="${id}"><span class="sec-num">${num}</span>${title}</h3>
+      <button type="button" class="link-btn rv-edit" data-edit="${editTarget}" aria-label="Edit ${title.replace(/&amp;/g, '&').toLowerCase()}">Edit</button></div>
+    ${body}</section>`;
+}
+// Amounts for a line, in the checker's net / GST / total form
+function lineAmounts(it) {
+  const a = num(it.amount) || 0, g = isSGD(it) ? (num(it.gst) || 0) : 0;
+  return { net: `${it.currency} ${fmt(a)}`, gst: isSGD(it) ? `${it.currency} ${fmt(g)}` : 'n/a', total: `${it.currency} ${fmt(a + g)}`,
+    gstRate: isSGD(it) ? it.taxCode || 'None' : 'n/a' };
+}
+const codingRows = it => [['Fund centre', it.fund], ['Cost centre', it.cost], ['GL account', it.gl], ['AOR (fund number)', it.aor], ['IO', it.io],
+  ['Agency', it.agency], ['Assignment', it.assignment], ['As123', it.as123], ['Location', it.location], ['Project', it.project]];
+
+function rvExpanded(it, i) {
+  const f = fileById(it.attachment), m = lineAmounts(it);
+  const next = state.items.length > 1 ? nextLineAfter(it.id) : null;
+  return `<section class="item-open" aria-label="Line item ${i + 1}">
+    <div class="line-strip">
+      <div class="strip-left">
+        <span class="strip-num">${i + 1}</span>
+        <h4 class="strip-title">${esc(it.description || 'No description')}</h4>
+        ${it.category ? `<span class="tag-teal">${esc(it.category)}</span>` : ''}
+      </div>
+      <div class="strip-right">
+        <button type="button" class="link-btn rv-edit" data-edit-item="${it.id}">Edit line item</button>
+        <button type="button" class="item-close" data-rv-close aria-label="Collapse line item ${i + 1}" aria-expanded="true">${ico('chev-up')}</button>
+      </div>
+    </div>
+    <div class="rv-open-body">
+      <div class="rv-col">
+        <div class="box amount-box">
+          <div class="amount-row"><span>Total amount</span><b>${esc(m.total)}</b></div>
+          <div class="amount-split">
+            <div><span>${isSGD(it) ? 'Excl. GST' : 'Amount'}</span><b>${fmt(num(it.amount) || 0)}</b></div>
+            <div><span>GST</span><b>${isSGD(it) ? fmt(num(it.gst) || 0) : 'n/a'}</b></div>
+            <div><span>GST rate</span><b>${esc(m.gstRate)}</b></div>
+          </div>
+        </div>
+        <div class="rv-field"><span class="f-label">Description</span><div class="box desc-box">${orNone(it.description)}</div></div>
+        <div class="pair">
+          <div class="rv-field"><span class="f-label">Invoice number</span><span class="f-value${it.invNo ? '' : ' empty'}">${orNone(it.invNo)}</span></div>
+          <div class="rv-field"><span class="f-label">Invoice date</span><span class="f-value${it.invDate ? '' : ' empty'}">${orNone(fmtDate(it.invDate))}</span></div>
+        </div>
+      </div>
+      <div class="rv-col">
+        <div class="rv-field"><span class="f-label">Coding</span>
+          <div class="box coding-box">${codingRows(it).map(([l, v]) => `<div><span>${l}:</span><b${v ? '' : ' class="empty"'}>${v ? esc(v) : '—'}</b></div>`).join('')}</div>
+        </div>
+        <div class="rv-field"><span class="f-label">Receipt</span>
+          ${f ? rvFileBtn(f) : '<span class="rv-none">No receipt attached. Use Edit line item to pick one.</span>'}
+        </div>
+      </div>
+    </div>
+    ${state.items.length > 1 ? `<div class="line-foot">
+      <button type="button" class="btn-plain" data-rv-close>Collapse</button>
+      ${next ? `<button type="button" class="btn-outline" data-rv-open="${next.id}">Next line item (${state.items.indexOf(next) + 1})${ico('chev-right')}</button>` : ''}
+    </div>` : ''}
+  </section>`;
+}
+function rvFileBtn(f) {
+  const on = state.viewFile === f.id;
+  return `<button type="button" class="rv-file-btn" data-view-file="${f.id}" aria-pressed="${on}">
+    <span class="file-start"><span class="pdf">${esc(f.ext)}</span><span><span class="file-name">${esc(f.name)}</span><span class="file-sub">${esc(f.size)} · ${on ? 'Showing on the right' : 'View on the right'}</span></span></span>
+    <span class="file-end">${ico(on ? 'eye' : 'chev-right')}</span>
+  </button>`;
+}
+const rvOpenId = () => state.items.some(it => it.id === state.rvOpen) ? state.rvOpen
+  : state.rvOpen === 0 ? null : state.items[0]?.id;   // first line is open by default; 0 = all closed
+
+function renderReview() {
+  const { sgd } = renderTotals();
+  const b = state.basic, o = state.officers;
+  // Same order and rules as the checker's "Basic & payment information" card
+  const basic = BASIC_FIELDS.map(f => rvField(plainLabel(f), f.type === 'date' ? fmtDate(b[f.key]) : b[f.key],
+    f.span === 4 ? 'rule span-4' : ['paymentTerms', 'paymentMethod', 'houseBank', 'advance'].includes(f.key) ? 'rule' : '')).join('');
+  const officers = OFFICER_FIELDS.map(f => rvField(plainLabel(f), o[f.key])).join('');
+  const files = group => state.files[group].length ? state.files[group].map(rvFileBtn).join('') : '<span class="rv-none">None attached</span>';
+
+  $('#review').innerHTML = `
+    <p class="rv-intro">Open a line item to check it against its receipt on the right. Use <b>Edit</b> to change anything.</p>
+    ${rvCard('01', 'Basic &amp; payment information', 'sec-basic', `<div class="rv-fields">${basic}</div>`, 'rv-basic')}
+    ${rvCard('02', 'Workflow officers', 'sec-officers', `<div class="rv-fields">${officers}</div>`, 'rv-off')}
+    <div class="items-head">
+      <h3 class="sec-title"><span class="sec-num">03</span><span>Line items (${state.items.length})</span></h3>
+      <span class="total-pill">Total: SGD ${fmt(sgd)}</span>
+    </div>
+    ${lineToolsHtml('rt')}
+    <div class="items" id="rvItems"></div>
+    <div class="attachments">
+      <section class="card att-box" aria-labelledby="rv-pop">
+        <h3 id="rv-pop">${ico('file')}Proof of purchase <span class="card-meta">(${state.files.proof.length})</span></h3>
+        <div class="file-list">${files('proof')}</div>
+      </section>
+      <section class="card att-box" aria-labelledby="rv-sup">
+        <h3 id="rv-sup">${ico('file')}Supporting documents</h3>
+        <div class="file-list">${files('support')}</div>
+      </section>
+    </div>`;
+  renderReviewItems();
+}
+// The review's line list: compact rows like step 1, with the open one in the checker's detail layout
+function renderReviewItems() {
+  const errs = validate();
+  const openId = rvOpenId();
+  $('#rvItems').innerHTML = lineListHtml(errs, openId, rvExpanded, 'data-rv-open');
+  updateLineTools('rt', errs);
+}
+
+/* ---------- Summary panel ---------- */
+function renderTotals() {
+  let excl = 0, gst = 0;
+  const other = {};
+  for (const it of state.items) {
+    const a = num(it.amount);
+    if (isNaN(a)) continue;
+    if (isSGD(it)) { excl += a; gst += num(it.gst) || 0; }
+    else other[it.currency] = (other[it.currency] || 0) + a;
+  }
+  $('#sumTotal').textContent = `SGD ${fmt(excl + gst)}`;
+  $('#sumExcl').textContent = `SGD ${fmt(excl)}`;
+  $('#sumGst').textContent = `SGD ${fmt(gst)}`;
+  $('#totalPill').textContent = `Total: SGD ${fmt(excl + gst)}`;
+  const others = Object.entries(other);
+  $('#otherCur').hidden = !others.length;
+  $('#otherCur').innerHTML = others.length
+    ? `Not in the SGD total: ${others.map(([c, v]) => `<code>${c} ${fmt(v)}</code>`).join(', ')}. Finance converts ${others.length > 1 ? 'these' : 'this'} to SGD when the claim is processed.`
+    : '';
+  return { sgd: excl + gst, others };
+}
+function renderChecklist(errs) {
+  const has = prefix => errs.some(e => e.id.startsWith(prefix));
+  const doneItems = state.items.filter(it => !has(`i${it.id}-`)).length;
+  const reading = state.files.proof.filter(f => f.reading).length;
+  const proofSub = reading ? `Reading ${reading} document${reading > 1 ? 's' : ''}…`
+    : state.files.proof.length ? `${state.files.proof.length} file${state.files.proof.length > 1 ? 's' : ''} attached` : 'Attach your receipts first to fill in the line items';
+  const rows = [
+    { done: state.files.proof.length > 0 && !reading, goto: 'sec-files', title: 'Proof of purchase', sub: proofSub },
+    { done: !has('b-'), goto: 'sec-basic', title: 'Basic & payment information', sub: 'Who to pay, claim type, receipt and payment details' },
+    { done: doneItems === state.items.length, goto: 'sec-items', title: 'Line items', sub: `${doneItems} of ${state.items.length} line item${state.items.length > 1 ? 's' : ''} complete` },
+    { done: !has('o-'), goto: 'sec-officers', title: 'Workflow officers', sub: 'Approving officer and proxy group' },
+  ];
+  $('#checklist').innerHTML = rows.map(r => `<li><button type="button" class="ck${r.done ? ' done' : ''}" data-goto="${r.goto}">
+    ${ico(r.done ? 'check-circle' : 'circle')}<span><b>${esc(r.title)}<span class="sr-only">${r.done ? ', done' : ', not done'}</span></b><span class="ck-sub">${esc(r.sub)}</span></span></button></li>`).join('');
+  const done = rows.filter(r => r.done).length;
+  $('#ckProgress').textContent = done === rows.length ? 'All done' : `${done} of ${rows.length} done`;
+  $('#ckProgress').parentElement.classList.toggle('all', done === rows.length);
+}
+// Everything that depends on the values (not the structure) of the form
+function refresh() {
+  const errs = validate();
+  renderTotals();
+  renderChecklist(errs);
+  renderErrors(errs);
+  renderViewer();
+  updateLineTools('lt', errs);              // counts change as lines are completed
+  if (state.step === 3) renderReview();   // e.g. a receipt finished reading while on review
+}
+function renderAll() { renderBasic(); renderItems(); renderFiles(); refresh(); }
+
+/* ---------- Events ---------- */
+document.addEventListener('input', e => {
+  const el = e.target.closest('[data-key]');
+  if (!el) return;
+  const key = el.dataset.key;
+  // Once edited, a field no longer counts as AI-filled
+  if (state.ai.delete(el.id)) el.closest('.field').querySelector('.ai-tag')?.remove();
+  const line = el.closest('[data-item]');
+  if (line) {
+    const it = state.items.find(x => x.id === +line.dataset.item);
+    it[key] = el.value;
+    if (key === 'currency') {
+      // Switching to/from SGD shows or hides GST and the GST rate
+      if (!isSGD(it)) { it.gst = ''; it.taxCode = ''; }
+      renderItems(); $(`#${el.id}`).focus();
+    } else renderStrip(it);
+    if (key === 'attachment') {
+      if (it.id === activeId()) state.viewFile = it.attachment || null;
+      renderFiles();
+    }
+  } else {
+    state[el.closest('[data-scope]').dataset.scope][key] = el.value;
+  }
+  refresh();
+});
+
+// Enter in a text field shouldn't submit the whole claim
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.matches('input.input')) e.preventDefault();
+});
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('button, a');
+  if (!t) return;
+
+  if (t.matches('a[href="#"]')) { e.preventDefault(); toast('Navigation is not wired up in the prototype.'); return; }
+  if (t.dataset.toast) { toast(t.dataset.toast); return; }
+
+  if (t.dataset.stepGo) { tryGoTo(+t.dataset.stepGo); return; }
+  if (t.dataset.rvOpen) {
+    openReviewItem(+t.dataset.rvOpen);
+    $('#review .item-open .item-close')?.focus();
+    return;
+  }
+  if ('rvClose' in t.dataset) {
+    const id = rvOpenId();
+    state.rvOpen = 0; renderReviewItems();
+    $(`#rvItems [data-rv-open="${id}"]`)?.focus();
+    return;
+  }
+  // Step 1 line list
+  if (t.dataset.openLine) { openLine(+t.dataset.openLine); return; }
+  if (t.dataset.nextLine) { openLine(+t.dataset.nextLine); return; }
+  if (t.dataset.closeLine) { closeLine(+t.dataset.closeLine); return; }
+  if (t.dataset.lineFilter) { state.lineFilter = t.dataset.lineFilter; rerenderLineList(); return; }
+  if ('clearLineFilter' in t.dataset) { state.lineFilter = 'all'; state.lineQuery = ''; rerenderLineList(); return; }
+  if (t.dataset.editItem) {
+    goToStep(1, { focus: false });
+    openLine(+t.dataset.editItem);
+    return;
+  }
+  // Checklist rows and the review's Edit links jump to a section, switching step if needed
+  if (t.dataset.goto || t.dataset.edit) {
+    const secId = t.dataset.goto || t.dataset.edit;
+    const step = secId === 'sec-officers' ? 2 : 1;
+    if (step !== state.step) goToStep(step, { focus: false });
+    // For line items, go straight to the first line with gaps (opening it), if there is one
+    const lineGaps = secId === 'sec-items' ? validate().filter(e => /^i\d+-/.test(e.id)) : [];
+    if (lineGaps.length) { focusFirstError(lineGaps); return; }
+    const sec = document.getElementById(secId);
+    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Cards hold their own inputs; for items and files, jump to the first input below the heading
+    const scope = sec.classList.contains('card') ? sec : document;
+    const target = sec.classList.contains('card')
+      ? (scope.querySelector('[data-invalid] .input') || scope.querySelector('.input'))
+      : secId === 'sec-items' ? ($('#items [data-invalid] .input') || $('#items .input')) : $('[data-pick="proof"]');
+    target?.focus({ preventScroll: true });
+    return;
+  }
+  if (t.dataset.removeItem) {
+    const id = +t.dataset.removeItem;
+    const wasActive = id === activeId();
+    state.items = state.items.filter(it => it.id !== id);
+    if (wasActive) { state.activeItem = null; state.viewFile = activeLine().attachment || null; }
+    if (state.openLine === id) state.openLine = 0;
+    renderItems(); refresh();
+    $('#addItem').focus();
+    toast('Line item removed.');
+    return;
+  }
+  if (t.dataset.pick) { $(`#input-${t.dataset.pick}`).click(); return; }
+  if (t.dataset.removeFile) { askRemoveFile(t.dataset.removeFile); return; }
+  if (t.dataset.saveTemplate) { askSaveTemplate(+t.dataset.saveTemplate); return; }
+  if (t.dataset.replaceFile) { replacingId = t.dataset.replaceFile; $('#input-replace').click(); return; }
+  if (t.dataset.viewFile) { viewFile(t.dataset.viewFile); return; }
+  if ('openFile' in t.dataset || t.id === 'docOpen') { const f = fileById(state.viewFile); if (f?.url) window.open(f.url, '_blank'); return; }
+});
+
+// Search and filter apply to the line list on whichever step you're on (step 1 or the review)
+const rerenderLineList = () => (state.step === 3 ? renderReviewItems() : renderItems());
+document.addEventListener('input', e => {
+  if (!e.target.matches('[data-line-search]')) return;
+  state.lineQuery = e.target.value;
+  rerenderLineList();
+});
+
+// The viewer follows the line item you're working in
+document.addEventListener('focusin', e => {
+  const line = e.target.closest?.('[data-item]');
+  if (line) setActiveItem(+line.dataset.item);
+});
+$('#items').addEventListener('pointerdown', e => {
+  const line = e.target.closest('[data-item]');
+  if (line) setActiveItem(+line.dataset.item);
+});
+
+// Viewer zoom (images only; PDFs use the browser's own controls)
+$('#zoomIn').addEventListener('click', () => { state.zoom = Math.min(300, state.zoom + 20); applyZoom(); });
+$('#zoomOut').addEventListener('click', () => { state.zoom = Math.max(40, state.zoom - 20); applyZoom(); });
+$('#zoomFit').addEventListener('click', () => { state.zoom = 100; applyZoom(); });
+
+$('#aiSwitch').addEventListener('click', () => setAiExtract(!aiExtract));
+
+// Templates
+document.addEventListener('change', e => {
+  const sel = e.target.closest('[data-apply-template]');
+  if (sel && sel.value !== '') applyTemplate(+sel.dataset.applyTemplate, +sel.value);
+});
+$('#tplSave').addEventListener('click', e => {
+  const name = $('#tplName').value.trim();
+  const err = templateNameError(name);
+  if (err) { e.preventDefault(); $('#tplErr').textContent = err; $('#tplErr').hidden = false; $('#tplName').focus(); }
+});
+$('#tplName').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); $('#tplSave').click(); }
+});
+$('#tplDlg').addEventListener('close', e => {
+  if (e.target.returnValue === 'save' && savingFrom) {
+    const name = $('#tplName').value.trim();
+    TEMPLATES.push({ name, values: Object.fromEntries(CODING_FIELDS.filter(f => savingFrom[f.key]).map(f => [f.key, savingFrom[f.key]])) });
+    renderItems(); refresh();
+    toast(`Saved “${name}”. Apply it from any line item’s Coding section.`);
+  }
+  savingFrom = null;
+});
+
+$('#input-replace').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file && replacingId) replaceFile(replacingId, file);
+  replacingId = null;
+  e.target.value = '';
+});
+$('#removeDlg').addEventListener('close', e => {
+  const v = e.target.returnValue;
+  if (removingId && (v === 'file' || v === 'both')) removeFile(removingId, v === 'both');
+  removingId = null;
+});
+
+$('#addItem').addEventListener('click', () => {
+  const it = newItem();
+  state.items.push(it);
+  state.openLine = state.activeItem = it.id;   // a new line opens; the others collapse to rows
+  state.viewFile = null;
+  renderItems(); refresh();
+  const line = $(`#line-${it.id}`);
+  line.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $(`#i${it.id}-category`).focus({ preventScroll: true });
+});
+
+// Uploads (mock)
+document.querySelectorAll('input[type="file"]').forEach(inp => inp.addEventListener('change', () => {
+  if (inp.files.length) addFiles(inp.dataset.group, [...inp.files]);
+  inp.value = '';
+}));
+document.querySelectorAll('[data-drop]').forEach(zone => {
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('over');
+    if (e.dataTransfer.files.length) addFiles(zone.dataset.drop, [...e.dataTransfer.files]);
+  });
+});
+
+// Next / Submit (the primary button) and Back
+$('#claimForm').addEventListener('submit', e => {
+  e.preventDefault();
+  if (state.step < 3) { tryGoTo(state.step + 1); return; }
+  submitClaim();
+});
+$('#backBtn').addEventListener('click', () => goToStep(state.step - 1));
+
+function submitClaim() {
+  // Steps 1 and 2 were checked on the way here, but a receipt could have changed things since
+  const errs = validate();
+  if (errs.length) {
+    errs.forEach(e => state.triedSteps.add(stepOf(e.id)));
+    goToStep(stepOf(errs[0].id), { focus: false });
+    focusFirstError(errs);
+    toast('Some details need fixing before you can submit.');
+    return;
+  }
+  const { sgd, others } = renderTotals();
+  const claimNo = `DIP2026${String(Math.floor(Math.random() * 1e6)).padStart(6, '0')}`;
+  const amount = [`SGD ${fmt(sgd)}`, ...others.map(([c, v]) => `${c} ${fmt(v)}`)].join(' + ');
+  const { supporting, approving } = state.officers;
+  const route = supporting
+    ? `${esc(supporting)} (supporting officer), then ${esc(approving)} (approving officer)`
+    : `${esc(approving)} (approving officer)`;
+  $('#doneMsg').innerHTML = `Claim <code>${claimNo}</code> for <b>${esc(amount)}</b> has gone to ${route}. You'll be told when it's approved or if anything needs fixing.`;
+  $('#doneDlg').showModal();
+}
+$('#doneDlg').addEventListener('close', e => {
+  if (e.target.returnValue === 'requests') toast('My Requests isn’t in this prototype yet, so here’s a fresh form.');
+  resetForm();
+});
+
+// Cancel
+const isDirty = () => Object.values(state.basic).some(Boolean) || Object.values(state.officers).some(Boolean)
+  || allFiles().length > 0 || state.items.length > 1
+  || state.items.some(it => ITEM_FIELDS.some(f => f.key !== 'currency' && it[f.key]) || it.currency !== 'SGD');
+$('#cancelBtn').addEventListener('click', () => {
+  if (!isDirty()) { toast('Goes back to My Requests in the real product.'); return; }
+  $('#discardDlg').showModal();
+});
+$('#discardDlg').addEventListener('close', e => {
+  if (e.target.returnValue === 'confirm') { resetForm(); toast('Claim discarded.'); }
+});
+
+function resetForm() {
+  allFiles().forEach(releaseFile);
+  Object.assign(state, blankState());
+  renderAll();
+  goToStep(1, { focus: false });
+}
+
+// Sidebar
+$('#collapseBtn').addEventListener('click', e => {
+  const app = $('#app');
+  const collapsed = app.dataset.sidebar === 'collapsed';
+  app.dataset.sidebar = collapsed ? 'open' : 'collapsed';
+  e.currentTarget.setAttribute('aria-expanded', collapsed);
+  e.currentTarget.setAttribute('aria-label', collapsed ? 'Collapse sidebar' : 'Expand sidebar');
+});
+$('#helpToggle').addEventListener('click', e => {
+  const open = e.currentTarget.getAttribute('aria-expanded') === 'true';
+  e.currentTarget.setAttribute('aria-expanded', !open);
+  $('#helpSub').hidden = open;
+});
+document.querySelectorAll('.role').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.role').forEach(x => x.setAttribute('aria-pressed', x === b));
+}));
+
+/* ---------- Init ---------- */
+renderAiSwitch();
+renderStepper();
+$('#lineToolsSlot').outerHTML = lineToolsHtml('lt');
+renderAll();
+</script>
+</body>
+</html>
